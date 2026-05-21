@@ -1,0 +1,251 @@
+'use client';
+
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Mail, Lock, ShieldCheck } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Card } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
+import { useAuthStore, UserRole } from '../../store/authStore';
+
+export default function SigninPage() {
+  const router = useRouter();
+  const loginUser = useAuthStore((state) => state.login);
+  const [role, setRole] = useState<UserRole>('Client');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validate = () => {
+    const errs: Record<string, string> = {};
+    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) errs.email = 'Valid email is required';
+    if (password.length < 6) errs.password = 'Password must be at least 6 characters';
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    setIsLoading(true);
+    // Simulate login server delay
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    setIsLoading(false);
+
+    setSuccess(true);
+    // Login in Zustand authStore
+    loginUser(email, role);
+
+    // Redirect to dashboard
+    setTimeout(() => {
+      router.push('/dashboard');
+    }, 1500);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-4 sm:p-8 font-sans text-gray-900 overflow-hidden relative">
+      {/* Background Ambient glows */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-[10%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-gradient-to-br from-[#FF2D2D]/5 to-transparent blur-[120px]" />
+        <div className="absolute -bottom-[10%] -right-[10%] w-[50vw] h-[50vw] rounded-full bg-gradient-to-tl from-[#FF2D2D]/5 to-transparent blur-[120px]" />
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
+        {/* Back Link */}
+        <Link 
+          href="/" 
+          className="absolute -top-12 left-0 flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-[#FF2D2D] transition-colors group"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span>Back to Home</span>
+        </Link>
+
+        <Card className="shadow-2xl border border-gray-100 rounded-3xl p-8 bg-white/80 backdrop-blur-md relative overflow-hidden">
+          <AnimatePresence mode="wait">
+            {!success ? (
+              <motion.div
+                key="login-form"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.3 }}
+              >
+                {/* Header */}
+                <div className="text-center mb-6">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FF2D2D]/10 text-[#FF2D2D] text-xs font-bold uppercase mb-3">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    Automate Auth
+                  </div>
+                  <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 mb-1">Welcome Back</h1>
+                  <p className="text-gray-400 text-sm">Sign in to manage your premium cars & services.</p>
+                </div>
+
+                {/* Role Switcher */}
+                <div className="mb-6 bg-gray-50 p-1.5 rounded-2xl border border-gray-100 flex gap-2">
+                  {(['Client', 'Mechanic', 'Partner'] as UserRole[]).map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => setRole(r)}
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                        role === r
+                          ? 'bg-[#FF2D2D] text-white shadow-lg shadow-[#FF2D2D]/35'
+                          : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Registration Form */}
+                <form onSubmit={handleLogin} className="space-y-4">
+                  {/* Email */}
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-400 uppercase">Email Address</label>
+                    <div className="relative">
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="ahmed@example.com"
+                        className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors ${
+                          errors.email ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#FF2D2D]/40'
+                        }`}
+                      />
+                      <Mail className="absolute left-3.5 top-3 w-4.5 h-4.5 text-gray-400" />
+                    </div>
+                    {errors.email && <p className="text-xs font-bold text-red-500">{errors.email}</p>}
+                  </div>
+
+                  {/* Password */}
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-400 uppercase">Password</label>
+                    <div className="relative">
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors ${
+                          errors.password ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#FF2D2D]/40'
+                        }`}
+                      />
+                      <Lock className="absolute left-3.5 top-3 w-4.5 h-4.5 text-gray-400" />
+                    </div>
+                    {errors.password && <p className="text-xs font-bold text-red-500">{errors.password}</p>}
+                  </div>
+
+                  {/* Options row */}
+                  <div className="flex items-center justify-between pt-1 select-none">
+                    <div className="flex items-center">
+                      <input
+                        id="rememberMe"
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="w-4.5 h-4.5 rounded border-gray-300 focus:ring-red-400 accent-[#FF2D2D] cursor-pointer"
+                      />
+                      <label htmlFor="rememberMe" className="ml-2.5 text-sm font-semibold text-gray-500 cursor-pointer">
+                        Remember me
+                      </label>
+                    </div>
+                    <Link href="#" className="text-sm font-bold text-[#FF2D2D] hover:underline">
+                      Forgot Password?
+                    </Link>
+                  </div>
+
+                  {/* Submit Button */}
+                  <div className="pt-3">
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      fullWidth
+                      size="lg"
+                      className="h-13 bg-[#FF2D2D] hover:bg-red-600 shadow-xl shadow-red-500/20 text-white rounded-xl text-base font-bold flex items-center justify-center"
+                    >
+                      {isLoading ? (
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        `Sign In as ${role}`
+                      )}
+                    </Button>
+                  </div>
+                </form>
+
+                {/* Social Login Divider */}
+                <div className="relative flex items-center my-6">
+                  <div className="flex-grow border-t border-gray-200"></div>
+                  <span className="flex-shrink-0 mx-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Or Continue With</span>
+                  <div className="flex-grow border-t border-gray-200"></div>
+                </div>
+
+                {/* Social buttons */}
+                <div className="grid grid-cols-3 gap-3">
+                  {['Google', 'Apple', 'Facebook'].map((provider) => (
+                    <button
+                      key={provider}
+                      type="button"
+                      onClick={async () => {
+                        setIsLoading(true);
+                        await new Promise((r) => setTimeout(r, 1000));
+                        setIsLoading(false);
+                        loginUser(`${provider.toLowerCase()}@automate.com`, role);
+                        setSuccess(true);
+                        setTimeout(() => router.push('/dashboard'), 1500);
+                      }}
+                      className="flex items-center justify-center h-11 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 font-bold text-xs text-gray-700 transition-colors"
+                    >
+                      {provider}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Footer Switch */}
+                <div className="mt-8 text-center text-sm font-semibold text-gray-500">
+                  <p>
+                    Don&apos;t have an account yet?{' '}
+                    <Link href="/signup" className="text-[#FF2D2D] hover:underline">
+                      Sign Up
+                    </Link>
+                  </p>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="login-success"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: 'spring', damping: 20 }}
+                className="py-12 flex flex-col items-center justify-center text-center gap-6"
+              >
+                <div className="w-20 h-20 bg-green-500/10 text-green-500 rounded-3xl flex items-center justify-center shadow-lg shadow-green-500/10 animate-bounce">
+                  <ShieldCheck className="w-10 h-10" />
+                </div>
+                <div>
+                  <h2 className="text-3xl font-extrabold text-gray-900 mb-2">Welcome Back</h2>
+                  <p className="text-gray-400 max-w-sm mx-auto font-medium">
+                    Authentication complete. Preparing your dashboard workspace...
+                  </p>
+                </div>
+                <div className="w-12 h-1.5 bg-gray-150 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ x: '-100%' }}
+                    animate={{ x: '100%' }}
+                    transition={{ repeat: Infinity, duration: 1.2, ease: 'linear' }}
+                    className="h-full bg-green-500 w-1/2"
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </Card>
+      </div>
+    </div>
+  );
+}
