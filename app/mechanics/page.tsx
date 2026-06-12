@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Wrench, Sparkles, Star, Heart, MapPin, Calendar, Clock, DollarSign, X } from 'lucide-react';
 import { WorkspaceLayout } from '../../components/dashboard/WorkspaceLayout';
 import { useAuthStore, Mechanic } from '../../store/authStore';
+import { useToastStore } from '../../store/toastStore';
 import { Button } from '../../components/ui/Button';
 
 const SPECIALTIES = [
@@ -20,6 +21,7 @@ const SPECIALTIES = [
 
 export default function MechanicsPage() {
   const { mechanics, toggleFavoriteMechanic, addTransaction, addNotification } = useAuthStore();
+  const addToast = useToastStore((state) => state.addToast);
 
   const [search, setSearch] = useState('');
   const [activeSpecialty, setActiveSpecialty] = useState('All');
@@ -29,6 +31,7 @@ export default function MechanicsPage() {
   const [bookingDate, setBookingDate] = useState('');
   const [bookingTime, setBookingTime] = useState('');
   const [bookingService, setBookingService] = useState('Standard Diagnostics');
+  const [isBooking, setIsBooking] = useState(false);
 
   // Filter mechanics
   const filteredMechanics = useMemo(() => {
@@ -45,8 +48,12 @@ export default function MechanicsPage() {
     });
   }, [mechanics, search, activeSpecialty]);
 
-  const handleConfirmBooking = () => {
+  const handleConfirmBooking = async () => {
     if (!bookingMech || !bookingDate || !bookingTime) return;
+
+    setIsBooking(true);
+    await new Promise(r => setTimeout(r, 1000));
+    setIsBooking(false);
 
     addTransaction('booking', `Booking Confirmed: ${bookingMech.name}`, -49.00);
     addNotification(
@@ -54,6 +61,7 @@ export default function MechanicsPage() {
       `Registered standard ${bookingService} with ${bookingMech.name} for ${bookingDate} at ${bookingTime}.`,
       'booking'
     );
+    addToast({ type: 'success', title: 'Booking Confirmed!', message: `Appointment scheduled with ${bookingMech.name}.` });
 
     setBookingMech(null);
     setBookingDate('');
@@ -233,7 +241,8 @@ export default function MechanicsPage() {
                   <select
                     value={bookingService}
                     onChange={(e) => setBookingService(e.target.value)}
-                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors cursor-pointer"
+                    disabled={isBooking}
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors cursor-pointer disabled:opacity-60"
                   >
                     <option value="Diagnostics Inspection">Diagnostics Session ($49.00)</option>
                     <option value="Complete Engine Cleanse">Complete Engine Cleanse ($99.00)</option>
@@ -250,7 +259,8 @@ export default function MechanicsPage() {
                       required
                       value={bookingDate}
                       onChange={(e) => setBookingDate(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                      disabled={isBooking}
+                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                   <div>
@@ -260,7 +270,8 @@ export default function MechanicsPage() {
                       required
                       value={bookingTime}
                       onChange={(e) => setBookingTime(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                      disabled={isBooking}
+                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                 </div>
@@ -268,11 +279,11 @@ export default function MechanicsPage() {
                 <div className="pt-4">
                   <Button
                     onClick={handleConfirmBooking}
-                    disabled={!bookingDate || !bookingTime}
+                    disabled={!bookingDate || !bookingTime || isBooking}
                     fullWidth
                     className="h-12 bg-[#FF2D2D] text-white hover:bg-red-600 font-bold"
                   >
-                    Confirm Appointment
+                    {isBooking ? 'Processing...' : 'Confirm Appointment'}
                   </Button>
                 </div>
               </div>

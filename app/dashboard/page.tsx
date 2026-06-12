@@ -3,6 +3,9 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Car, 
@@ -22,8 +25,30 @@ import {
   Gauge
 } from 'lucide-react';
 import { WorkspaceLayout } from '../../components/dashboard/WorkspaceLayout';
+
 import { useAuthStore, Vehicle, Mechanic, Order } from '../../store/authStore';
+import { useLocalDB } from '../../store/localDB';
+import { useToastStore } from '../../store/toastStore';
 import { Button } from '../../components/ui/Button';
+
+// Vehicle validation schema
+const vehicleSchema = z.object({
+  brand: z.string().min(2, 'Make / Brand is required (min 2 chars)'),
+  model: z.string().min(1, 'Model name is required'),
+  year: z.any(),
+  mileage: z.any(),
+});
+
+type VehicleFormValues = z.infer<typeof vehicleSchema>;
+
+// Booking validation schema
+const bookingSchema = z.object({
+  service: z.string().min(1, 'Service type is required'),
+  date: z.any(),
+  time: z.any(),
+});
+
+type BookingFormValues = z.infer<typeof bookingSchema>;
 
 function DashboardContent() {
   const searchParams = useSearchParams();
@@ -34,7 +59,6 @@ function DashboardContent() {
   const { 
     user, 
     vehicles, 
-    mechanics, 
     orders, 
     transactions, 
     walletBalance, 
@@ -42,25 +66,54 @@ function DashboardContent() {
     removeVehicle,
     toggleFavoriteMechanic,
     addTransaction,
-    addNotification
+    addNotification,
+    bookMechanic,
+    mechanics,
   } = useAuthStore();
+  const addToast = useToastStore((state) => state.addToast);
 
   // Add Vehicle Form modal state
   const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
-  const [vBrand, setVBrand] = useState('');
-  const [vModel, setVModel] = useState('');
-  const [vYear, setVYear] = useState('');
-  const [vMileage, setVMileage] = useState('');
+  const [isAddingVehicle, setIsAddingVehicle] = useState(false);
   
+  // Add Vehicle Form hook
+  const {
+    register: registerVehicle,
+    handleSubmit: handleSubmitVehicle,
+    reset: resetVehicle,
+    formState: { errors: vehicleErrors }
+  } = useForm<VehicleFormValues>({
+    resolver: zodResolver(vehicleSchema),
+    defaultValues: {
+      brand: '',
+      model: '',
+      year: 2023,
+      mileage: 12000,
+    }
+  });
+
   // Wallet deposit state
   const [depositAmount, setDepositAmount] = useState('');
   const [isDepositing, setIsDepositing] = useState(false);
 
   // Mechanic Booking state
   const [bookingMech, setBookingMech] = useState<Mechanic | null>(null);
-  const [bookingDate, setBookingDate] = useState('');
-  const [bookingTime, setBookingTime] = useState('');
-  const [bookingService, setBookingService] = useState('Standard Diagnostics');
+  const [isBookingMech, setIsBookingMech] = useState(false);
+
+  // Mechanic Booking hook
+  const {
+    register: registerBooking,
+    handleSubmit: handleSubmitBooking,
+    reset: resetBooking,
+    formState: { errors: bookingErrors }
+  } = useForm<BookingFormValues>({
+    resolver: zodResolver(bookingSchema),
+    defaultValues: {
+      service: 'Standard Diagnostics',
+      date: '',
+      time: '',
+    }
+  });
 
   // Add dynamic animations
   const cardVariants = {
@@ -72,28 +125,26 @@ function DashboardContent() {
     })
   };
 
-  const handleAddVehicle = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!vBrand || !vModel || !vYear || !vMileage) return;
+  const onAddVehicleSubmit = async (data: VehicleFormValues) => {
+    setIsAddingVehicle(true);
+    await new Promise(r => setTimeout(r, 800));
+    setIsAddingVehicle(false);
 
     addVehicle({
-      brand: vBrand,
-      model: vModel,
-      year: Number(vYear),
-      mileage: Number(vMileage),
+      brand: data.brand,
+      model: data.model,
+      year: Number(data.year),
+      mileage: Number(data.mileage),
       status: 'Perfect',
       image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500&auto=format&fit=crop&q=80'
     });
 
-    // Reset Form
-    setVBrand('');
-    setVModel('');
-    setVYear('');
-    setVMileage('');
+    resetVehicle();
     setShowAddVehicleModal(false);
 
     // Alert
-    addNotification('Vehicle Added 🏎️', `${vBrand} ${vModel} has been parked inside your garage workspace.`, 'system');
+    addNotification('Vehicle Added 🏎️', `${data.brand} ${data.model} has been parked inside your garage workspace.`, 'system');
+    addToast({ type: 'success', title: 'Vehicle Added', message: `${data.brand} ${data.model} is now in your garage.` });
   };
 
   const handleDeposit = async () => {
@@ -109,16 +160,36 @@ function DashboardContent() {
     setDepositAmount('');
   };
 
-  const handleConfirmBooking = () => {
-    if (!bookingMech || !bookingDate || !bookingTime) return;
+  const onBookingSubmit = async (data: BookingFormValues) => {
+    if (!bookingMech) return;
 
-    // Deduct standard diagnostic booking fee if needed
+    setIsBookingMech(true);
+    await new Promise(r => setTimeout(r, 1000));
+    setIsBookingMech(false);
+
+    const dateTime = `${data.date}, ${data.time}`;
+    const vehicleLabel = vehicles[0]
+      ? `${vehicles[0].brand} ${vehicles[0].model} (${vehicles[0].year})`
+      : 'My Vehicle';
+
+    // Task B: cross-role event — creates MechanicBooking + notifies Mechanic
+    bookMechanic(
+      bookingMech.id,
+      bookingMech.id + '@automate.com', // mechanicUserId: stable key per mechanic
+      user?.email ?? 'client@automate.com',
+      user?.name ?? 'Client',
+      vehicleLabel,
+      data.service,
+      dateTime
+    );
+
+    // Client-side feedback
     addTransaction('booking', `Booking Prep: ${bookingMech.name}`, -49.00);
-    addNotification('Appointment Confirmed 🔧', `Diagnostic slot registered on ${bookingDate} at ${bookingTime} with ${bookingMech.name}.`, 'booking');
+    addNotification('Appointment Confirmed 🔧', `Diagnostic slot registered on ${data.date} at ${data.time} with ${bookingMech.name}.`, 'booking');
+    addToast({ type: 'success', title: 'Booking Confirmed!', message: `Appointment scheduled with ${bookingMech.name}.` });
 
     setBookingMech(null);
-    setBookingDate('');
-    setBookingTime('');
+    resetBooking();
   };
 
   // If tab=wallet is requested, render the full wallet dashboard widget, else overview
@@ -460,56 +531,64 @@ function DashboardContent() {
                   <X className="w-4 h-4 text-gray-600" />
                 </button>
               </div>
-              <form onSubmit={handleAddVehicle} className="space-y-4">
+              <form onSubmit={handleSubmitVehicle(onAddVehicleSubmit)} className="space-y-4">
                 <div>
                   <label className="text-xs font-bold text-gray-400 uppercase block mb-1">Make / Brand</label>
                   <input
                     type="text"
-                    required
                     placeholder="e.g. Porsche"
-                    value={vBrand}
-                    onChange={(e) => setVBrand(e.target.value)}
-                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                    disabled={isAddingVehicle}
+                    {...registerVehicle('brand')}
+                    className={`w-full h-11 px-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
+                      vehicleErrors.brand ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#FF2D2D]/40'
+                    }`}
                   />
+                  {vehicleErrors.brand && <p className="text-[10px] font-bold text-red-500 mt-1">{vehicleErrors.brand.message}</p>}
                 </div>
                 <div>
                   <label className="text-xs font-bold text-gray-400 uppercase block mb-1">Model Name</label>
                   <input
                     type="text"
-                    required
                     placeholder="e.g. Taycan Turbo S"
-                    value={vModel}
-                    onChange={(e) => setVModel(e.target.value)}
-                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                    disabled={isAddingVehicle}
+                    {...registerVehicle('model')}
+                    className={`w-full h-11 px-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
+                      vehicleErrors.model ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#FF2D2D]/40'
+                    }`}
                   />
+                  {vehicleErrors.model && <p className="text-[10px] font-bold text-red-500 mt-1">{vehicleErrors.model.message}</p>}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs font-bold text-gray-400 uppercase block mb-1">Year</label>
                     <input
                       type="number"
-                      required
                       placeholder="e.g. 2023"
-                      value={vYear}
-                      onChange={(e) => setVYear(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                      disabled={isAddingVehicle}
+                      {...registerVehicle('year')}
+                      className={`w-full h-11 px-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
+                        vehicleErrors.year ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#FF2D2D]/40'
+                      }`}
                     />
+                    {vehicleErrors.year && <p className="text-[10px] font-bold text-red-500 mt-1">{String(vehicleErrors.year.message)}</p>}
                   </div>
                   <div>
                     <label className="text-xs font-bold text-gray-400 uppercase block mb-1">Current Mileage</label>
                     <input
                       type="number"
-                      required
                       placeholder="e.g. 12000"
-                      value={vMileage}
-                      onChange={(e) => setVMileage(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                      disabled={isAddingVehicle}
+                      {...registerVehicle('mileage')}
+                      className={`w-full h-11 px-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
+                        vehicleErrors.mileage ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#FF2D2D]/40'
+                      }`}
                     />
+                    {vehicleErrors.mileage && <p className="text-[10px] font-bold text-red-500 mt-1">{String(vehicleErrors.mileage.message)}</p>}
                   </div>
                 </div>
                 <div className="pt-4">
-                  <Button type="submit" fullWidth className="h-12 bg-[#FF2D2D] text-white hover:bg-red-600 font-bold">
-                    Park Vehicle In Garage
+                  <Button type="submit" fullWidth disabled={isAddingVehicle} className="h-12 bg-[#FF2D2D] text-white hover:bg-red-600 font-bold">
+                    {isAddingVehicle ? 'Adding Vehicle...' : 'Park Vehicle In Garage'}
                   </Button>
                 </div>
               </form>
@@ -548,19 +627,20 @@ function DashboardContent() {
                 </button>
               </div>
 
-              <div className="space-y-4">
+              <form onSubmit={handleSubmitBooking(onBookingSubmit)} className="space-y-4">
                 <div>
                   <label className="text-xs font-bold text-gray-400 uppercase block mb-1">Service Type</label>
                   <select
-                    value={bookingService}
-                    onChange={(e) => setBookingService(e.target.value)}
-                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors cursor-pointer"
+                    {...registerBooking('service')}
+                    disabled={isBookingMech}
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors cursor-pointer disabled:opacity-60"
                   >
                     <option value="Standard Diagnostics">Diagnostic Session ($49.00)</option>
                     <option value="Full Engine Oil Flush">Full Oil Flush ($99.00)</option>
                     <option value="Brake System Bleeding">Brakes Calibrations ($149.00)</option>
                     <option value="Custom Performance Remap">Performance Mapping ($299.00)</option>
                   </select>
+                  {bookingErrors.service && <p className="text-[10px] font-bold text-red-500 mt-1">{bookingErrors.service.message}</p>}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -568,35 +648,39 @@ function DashboardContent() {
                     <label className="text-xs font-bold text-gray-400 uppercase block mb-1">Select Date</label>
                     <input
                       type="date"
-                      required
-                      value={bookingDate}
-                      onChange={(e) => setBookingDate(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                      {...registerBooking('date')}
+                      disabled={isBookingMech}
+                      className={`w-full h-11 px-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
+                        bookingErrors.date ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#FF2D2D]/40'
+                      }`}
                     />
+                    {bookingErrors.date && <p className="text-[10px] font-bold text-red-500 mt-1">{String(bookingErrors.date.message)}</p>}
                   </div>
                   <div>
                     <label className="text-xs font-bold text-gray-400 uppercase block mb-1">Select Time</label>
                     <input
                       type="time"
-                      required
-                      value={bookingTime}
-                      onChange={(e) => setBookingTime(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                      {...registerBooking('time')}
+                      disabled={isBookingMech}
+                      className={`w-full h-11 px-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
+                        bookingErrors.time ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#FF2D2D]/40'
+                      }`}
                     />
+                    {bookingErrors.time && <p className="text-[10px] font-bold text-red-500 mt-1">{String(bookingErrors.time.message)}</p>}
                   </div>
                 </div>
 
                 <div className="pt-4">
                   <Button
-                    onClick={handleConfirmBooking}
-                    disabled={!bookingDate || !bookingTime}
+                    type="submit"
                     fullWidth
+                    disabled={isBookingMech}
                     className="h-12 bg-[#FF2D2D] text-white hover:bg-red-600 font-bold"
                   >
-                    Confirm & Authorize Payment
+                    {isBookingMech ? 'Processing Payment...' : 'Confirm & Authorize Payment'}
                   </Button>
                 </div>
-              </div>
+              </form>
             </motion.div>
           </>
         )}

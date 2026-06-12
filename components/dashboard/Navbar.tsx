@@ -13,7 +13,11 @@ export function DashboardNavbar() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
-  const unreadCount = notifications.filter(n => n.unread).length;
+  // Role-isolated feed: only show notifications targeted at this specific user
+  const activeNotifications = notifications.filter(
+    (n) => n.targetRole === user?.role && n.targetUserId === user?.email
+  );
+  const unreadCount = activeNotifications.filter((n) => n.unread).length;
 
   const handleLogout = () => {
     logout();
@@ -21,14 +25,14 @@ export function DashboardNavbar() {
   };
 
   return (
-    <header className="sticky top-0 z-30 h-20 bg-white/80 backdrop-blur-md border-b border-gray-150 flex items-center justify-between px-6 sm:px-8 select-none">
+    <header className={`sticky top-0 z-30 h-20 ${user?.role === 'Admin' ? 'bg-[#0f0f13] border-b border-[#2d2d35]' : 'bg-white/80 backdrop-blur-md border-b border-gray-150'} flex items-center justify-between px-6 sm:px-8 select-none transition-colors duration-300`}>
       {/* Search / Greetings */}
       <div>
-        <h2 className="text-base font-extrabold text-gray-900 leading-none">
-          Automate Workspace
+        <h2 className={`text-base font-extrabold leading-none ${user?.role === 'Admin' ? 'text-white' : 'text-gray-900'}`}>
+          {user?.role === 'Admin' ? 'Automate Platform Controller' : user?.role === 'Merchant' ? 'Automate Seller Central' : 'Automate Workspace'}
         </h2>
-        <p className="text-xs text-gray-400 font-semibold mt-1 hidden sm:block">
-          SaaS Engine Premium v1.0.4
+        <p className={`text-xs font-semibold mt-1 hidden sm:block ${user?.role === 'Admin' ? 'text-gray-400' : 'text-gray-400'}`}>
+          {user?.role === 'Admin' ? 'System Master Node v2.0' : user?.role === 'Merchant' ? 'Merchant Dashboard v1.0.4' : 'SaaS Engine Premium v1.0.4'}
         </p>
       </div>
 
@@ -94,12 +98,12 @@ export function DashboardNavbar() {
                     )}
                   </div>
                   <div className="max-h-72 overflow-y-auto divide-y divide-gray-50">
-                    {notifications.length === 0 ? (
+                    {activeNotifications.length === 0 ? (
                       <div className="py-8 text-center text-gray-400 text-xs font-medium">
-                        No notifications.
+                        No notifications yet.
                       </div>
                     ) : (
-                      notifications.map((n) => (
+                      activeNotifications.map((n) => (
                         <div
                           key={n.id}
                           className={`p-4 transition-colors ${n.unread ? 'bg-red-50/20' : 'bg-transparent'}`}
@@ -133,11 +137,11 @@ export function DashboardNavbar() {
             }}
             className="flex items-center gap-2.5 pl-1.5 pr-2.5 py-1.5 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200/50 cursor-pointer transition-colors"
           >
-            <div className="w-7.5 h-7.5 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 text-white flex items-center justify-center font-bold text-sm shadow-inner overflow-hidden relative">
+            <div className={`w-8 h-8 flex items-center justify-center font-bold text-sm shadow-inner overflow-hidden relative ${user?.role === 'Merchant' ? 'bg-[#FF2D2D] text-white [clip-path:polygon(50%_0%,100%_25%,100%_75%,50%_100%,0%_75%,0%_25%)]' : 'rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 text-white'}`}>
               {user?.avatar ? (
                 <img src={user.avatar} alt="avatar" className="object-cover w-full h-full" />
               ) : (
-                'A'
+                user?.name.charAt(0) || 'M'
               )}
             </div>
             <span className="text-xs font-bold text-gray-800 hidden sm:block">

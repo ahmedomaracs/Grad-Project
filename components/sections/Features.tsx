@@ -45,7 +45,7 @@ function PremiumFeatureCard({ feature, index }: { feature: any, index: number })
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="relative p-8 rounded-3xl bg-white border border-gray-100 shadow-sm hover:shadow-2xl transition-shadow duration-500 overflow-hidden group"
+      className="relative p-8 rounded-3xl bg-white border border-gray-100 shadow-sm overflow-hidden group transition-all duration-500 ease-out group-hover:opacity-40 hover:!opacity-100 hover:scale-105 hover:z-50 hover:shadow-2xl will-change-transform"
       style={{
         transform: isHovered 
           ? `perspective(1000px) rotateX(${(mousePosition.y - 150) / 30}deg) rotateY(${-(mousePosition.x - 150) / 30}deg)` 
@@ -118,7 +118,7 @@ export function Features() {
           </motion.p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-8 group">
           {features.map((feature, index) => (
             <PremiumFeatureCard key={index} feature={feature} index={index} />
           ))}

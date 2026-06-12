@@ -2,8 +2,20 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useToastStore } from '../../store/toastStore';
 
 export function Footer() {
+  const addToast = useToastStore((state) => state.addToast);
+
+  const handleLegalClick = (type: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    addToast({
+      type: 'info',
+      title: type,
+      message: `The full ${type} document will be available upon public launch.`,
+    });
+  };
+
   return (
     <footer className="bg-[#0A0A0A] text-white pt-24 pb-12 border-t border-white/10 relative overflow-hidden">
       {/* Ambient glow */}
@@ -26,26 +38,26 @@ export function Footer() {
           <div className="col-span-1 md:col-span-2 md:col-start-7">
             <h3 className="font-semibold text-white tracking-wide mb-6 uppercase text-sm">Services</h3>
             <ul className="space-y-4">
-              <li><Link href="#" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all inline-block font-light">Car Management</Link></li>
-              <li><Link href="#" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all inline-block font-light">Mechanic Booking</Link></li>
-              <li><Link href="#" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all inline-block font-light">Spare Parts</Link></li>
+              <li><Link href="/dashboard" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all inline-block font-light">Car Management</Link></li>
+              <li><Link href="/mechanics" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all inline-block font-light">Mechanic Booking</Link></li>
+              <li><Link href="/shop" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all inline-block font-light">Spare Parts</Link></li>
             </ul>
           </div>
 
           <div className="col-span-1 md:col-span-2">
             <h3 className="font-semibold text-white tracking-wide mb-6 uppercase text-sm">Company</h3>
             <ul className="space-y-4">
-              <li><Link href="#" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all inline-block font-light">About Us</Link></li>
-              <li><Link href="#" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all inline-block font-light">Careers</Link></li>
-              <li><Link href="#" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all inline-block font-light">Contact</Link></li>
+              <li><Link href="/#features" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all inline-block font-light">About Us</Link></li>
+              <li><Link href="/#how-it-works" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all inline-block font-light">How It Works</Link></li>
+              <li><Link href="/#testimonials" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all inline-block font-light">Testimonials</Link></li>
             </ul>
           </div>
 
           <div className="col-span-1 md:col-span-2">
             <h3 className="font-semibold text-white tracking-wide mb-6 uppercase text-sm">Legal</h3>
             <ul className="space-y-4">
-              <li><Link href="/privacy" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all inline-block font-light">Privacy Policy</Link></li>
-              <li><Link href="/terms" className="text-gray-400 hover:text-white hover:translate-x-1 transition-all inline-block font-light">Terms of Service</Link></li>
+              <li><a href="#" onClick={handleLegalClick('Privacy Policy')} className="text-gray-400 hover:text-white hover:translate-x-1 transition-all inline-block font-light cursor-pointer">Privacy Policy</a></li>
+              <li><a href="#" onClick={handleLegalClick('Terms of Service')} className="text-gray-400 hover:text-white hover:translate-x-1 transition-all inline-block font-light cursor-pointer">Terms of Service</a></li>
             </ul>
           </div>
         </div>

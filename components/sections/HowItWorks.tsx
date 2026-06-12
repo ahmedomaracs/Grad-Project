@@ -49,45 +49,45 @@ export function HowItWorks() {
             />
           </div>
 
-          <div className="grid lg:grid-cols-4 gap-12 relative z-10">
-            {steps.map((step, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.7, delay: index * 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="relative flex flex-col items-center lg:items-start text-center lg:text-left group"
-              >
-                {/* Mobile Vertical Line */}
-                {index !== steps.length - 1 && (
-                  <div className="lg:hidden absolute top-24 bottom-[-3rem] left-1/2 w-[2px] bg-gray-100 -translate-x-1/2 overflow-hidden">
-                    <motion.div 
-                      initial={{ height: 0 }}
-                      whileInView={{ height: '100%' }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 1, delay: index * 0.2 }}
-                      className="w-full bg-gradient-to-b from-[#FF2D2D] to-transparent"
-                    />
-                  </div>
-                )}
+          <div className="flex flex-col items-center justify-center w-full mt-4 lg:mt-0">
+            <div className="w-full max-w-sm md:max-w-md lg:max-w-none relative mx-auto">
+              <div className="flex flex-col lg:grid lg:grid-cols-4 lg:gap-12 relative z-10">
+                {steps.map((step, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.7, delay: index * 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex flex-row lg:flex-col items-stretch lg:items-start text-left group z-10 ml-8 lg:ml-0"
+                  >
+                    {/* Circle Column with Border */}
+                    <div 
+                      className={`flex flex-col items-start w-16 lg:w-auto shrink-0 ${
+                        index !== steps.length - 1 ? 'border-l-2 border-[#FF2D2D]/20 lg:border-l-0' : 'border-l-2 border-transparent lg:border-l-0'
+                      }`}
+                    >
+                      <div className="relative w-16 h-16 lg:w-24 lg:h-24 -ml-[33px] lg:ml-0 mb-0 lg:mb-8 z-20 flex flex-col items-center justify-center shrink-0">
+                        <div className="absolute inset-0 bg-[#FF2D2D]/20 rounded-full blur-xl scale-50 group-hover:scale-100 transition-transform duration-500 z-0" />
+                        <div className="absolute inset-2 bg-white rounded-full border border-gray-100 shadow-xl flex items-center justify-center z-20">
+                          <span className="text-xl lg:text-2xl font-black text-gray-900 group-hover:text-[#FF2D2D] transition-colors duration-300">
+                            {step.num}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
 
-                {/* Glowing Circle */}
-                <div className="relative w-24 h-24 mb-8">
-                  <div className="absolute inset-0 bg-[#FF2D2D]/20 rounded-full blur-xl scale-50 group-hover:scale-100 transition-transform duration-500" />
-                  <div className="absolute inset-2 bg-white rounded-full border border-gray-100 shadow-xl flex items-center justify-center z-10">
-                    <span className="text-2xl font-black text-gray-900 group-hover:text-[#FF2D2D] transition-colors duration-300">
-                      {step.num}
-                    </span>
-                  </div>
-                </div>
-
-                <h3 className="text-2xl font-bold text-gray-900 mb-3 tracking-tight">{step.title}</h3>
-                <p className="text-gray-500 leading-relaxed text-lg">
-                  {step.desc}
-                </p>
-              </motion.div>
-            ))}
+                    {/* Text Content */}
+                    <div className="flex flex-col items-start lg:pl-0 pb-12 lg:pb-0 pt-2 lg:pt-0 max-w-[260px] lg:max-w-none z-10">
+                      <h3 className="text-xl lg:text-2xl font-bold text-gray-900 mb-2 tracking-tight">{step.title}</h3>
+                      <p className="text-gray-500 leading-relaxed text-sm lg:text-lg">
+                        {step.desc}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -1,6 +1,21 @@
+'use client';
+
 import React from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '../../store/authStore';
+import { useToastStore } from '../../store/toastStore';
 
 export function Sidebar() {
+  const router = useRouter();
+  const { logout } = useAuthStore();
+  const addToast = useToastStore((state) => state.addToast);
+
+  const handleLogout = () => {
+    logout();
+    addToast({ type: 'info', title: 'Logged Out', message: 'You have been safely logged out.' });
+    router.push('/signin');
+  };
+
   return (
     <div className="flex flex-col w-[250px] min-h-screen bg-[#101828] border-r border-[#1E2939]">
       <div className="flex flex-col flex-1">
@@ -77,7 +92,10 @@ export function Sidebar() {
         
         {/* Logout Section */}
         <div className="pt-[17px] px-[16px] pb-[24px] border-t border-[#1E2939]">
-          <button className="flex flex-row items-center px-[16px] py-[12px] gap-[12px] rounded-[14px] hover:bg-[#1E2939] transition-colors cursor-pointer w-full text-left group">
+          <button 
+            onClick={handleLogout}
+            className="flex flex-row items-center px-[16px] py-[12px] gap-[12px] rounded-[14px] hover:bg-[#1E2939] transition-colors cursor-pointer w-full text-left group"
+          >
             <div className="w-[20px] h-[20px] flex items-center justify-center relative">
                <div className="w-[12px] h-[16px] border border-[#FF6467] border-r-0 rounded-l-md" />
                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[10px] h-[2px] bg-[#FF6467]" />

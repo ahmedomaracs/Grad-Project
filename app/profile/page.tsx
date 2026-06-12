@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User, Lock, Bell, Settings, Car, ShieldAlert, Check, RefreshCw, Trash2, Plus, X } from 'lucide-react';
 import { WorkspaceLayout } from '../../components/dashboard/WorkspaceLayout';
 import { useAuthStore } from '../../store/authStore';
+import { useToastStore } from '../../store/toastStore';
 import { Button } from '../../components/ui/Button';
 
 export default function ProfilePage() {
@@ -16,6 +17,7 @@ export default function ProfilePage() {
     removeVehicle, 
     addNotification 
   } = useAuthStore();
+  const addToast = useToastStore((state) => state.addToast);
 
   // Profile coordinates states
   const [name, setName] = useState(user?.name || 'Ahmed Al-Masri');
@@ -32,6 +34,7 @@ export default function ProfilePage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isChangingPwd, setIsChangingPwd] = useState(false);
   const [pwdSuccess, setPwdSuccess] = useState(false);
+  const [pwdError, setPwdError] = useState('');
 
   // Garage quick edit states
   const [showAddModal, setShowAddModal] = useState(false);
@@ -39,6 +42,7 @@ export default function ProfilePage() {
   const [vModel, setVModel] = useState('');
   const [vYear, setVYear] = useState('');
   const [vMileage, setVMileage] = useState('');
+  const [isAddingVehicle, setIsAddingVehicle] = useState(false);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,12 +53,30 @@ export default function ProfilePage() {
     updateProfile({ name, email, phone, address, notificationsEnabled: notify });
     setSuccess(true);
     addNotification('Profile Updated 👤', 'Your account settings have been successfully synchronized.', 'system');
+    addToast({ type: 'success', title: 'Profile Saved', message: 'Account settings updated successfully.' });
     setTimeout(() => setSuccess(false), 2000);
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword !== confirmPassword || newPassword.length < 6) return;
+    setPwdError('');
+
+    // Validate
+    if (!oldPassword) {
+      setPwdError('Current password is required.');
+      addToast({ type: 'error', title: 'Missing Field', message: 'Please enter your current password.' });
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPwdError('New password must be at least 6 characters.');
+      addToast({ type: 'error', title: 'Too Short', message: 'New password must be at least 6 characters.' });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPwdError('New passwords do not match.');
+      addToast({ type: 'error', title: 'Mismatch', message: 'New password and confirmation do not match.' });
+      return;
+    }
 
     setIsChangingPwd(true);
     await new Promise((r) => setTimeout(r, 800));
@@ -62,15 +84,20 @@ export default function ProfilePage() {
 
     setPwdSuccess(true);
     addNotification('Password Updated 🔐', 'Your security passcode credentials have been reset.', 'system');
+    addToast({ type: 'success', title: 'Password Changed', message: 'Your password has been updated successfully.' });
     setOldPassword('');
     setNewPassword('');
     setConfirmPassword('');
+    setPwdError('');
     setTimeout(() => setPwdSuccess(false), 2000);
   };
 
-  const handleAddVehicle = (e: React.FormEvent) => {
+  const handleAddVehicle = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!vBrand || !vModel || !vYear || !vMileage) return;
+
+    setIsAddingVehicle(true);
+    await new Promise((r) => setTimeout(r, 600));
 
     addVehicle({
       brand: vBrand,
@@ -81,12 +108,15 @@ export default function ProfilePage() {
       image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500&auto=format&fit=crop&q=80'
     });
 
+    addNotification('Vehicle Added 🏎️', `${vBrand} ${vModel} registered to your profile garage.`, 'system');
+    addToast({ type: 'success', title: 'Vehicle Added', message: `${vBrand} ${vModel} is now in your garage.` });
+
     setVBrand('');
     setVModel('');
     setVYear('');
     setVMileage('');
     setShowAddModal(false);
-    addNotification('Vehicle Added 🏎️', `${vBrand} ${vModel} registered to your profile garage.`, 'system');
+    setIsAddingVehicle(false);
   };
 
   return (
@@ -115,7 +145,8 @@ export default function ProfilePage() {
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                      disabled={isUpdating}
+                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                   <div className="space-y-1">
@@ -124,7 +155,8 @@ export default function ProfilePage() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                      disabled={isUpdating}
+                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                 </div>
@@ -136,7 +168,8 @@ export default function ProfilePage() {
                       type="text"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                      disabled={isUpdating}
+                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                   <div className="space-y-1">
@@ -145,7 +178,8 @@ export default function ProfilePage() {
                       type="text"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                      disabled={isUpdating}
+                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                 </div>
@@ -190,7 +224,8 @@ export default function ProfilePage() {
                     required
                     value={oldPassword}
                     onChange={(e) => setOldPassword(e.target.value)}
-                    className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                    disabled={isChangingPwd}
+                    className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
                   />
                 </div>
 
@@ -203,7 +238,8 @@ export default function ProfilePage() {
                       required
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                      disabled={isChangingPwd}
+                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                   <div className="space-y-1">
@@ -214,15 +250,23 @@ export default function ProfilePage() {
                       required
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                      disabled={isChangingPwd}
+                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                 </div>
 
+                {/* Error feedback */}
+                {pwdError && (
+                  <p className="text-xs font-bold text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5">
+                    ⚠️ {pwdError}
+                  </p>
+                )}
+
                 <div className="flex justify-end pt-2">
                   <Button
                     type="submit"
-                    disabled={isChangingPwd || newPassword !== confirmPassword}
+                    disabled={isChangingPwd}
                     className="h-10 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-xs font-bold border-none px-6"
                   >
                     {isChangingPwd ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : pwdSuccess ? <Check className="w-4 h-4 animate-bounce" /> : 'Reset Password'}
@@ -262,7 +306,10 @@ export default function ProfilePage() {
                         <p className="text-[10px] text-gray-400 font-bold mt-0.5">{v.year} · {v.mileage.toLocaleString()} mi</p>
                       </div>
                       <button
-                        onClick={() => removeVehicle(v.id)}
+                        onClick={() => {
+                          removeVehicle(v.id);
+                          addToast({ type: 'info', title: 'Vehicle Removed', message: `${v.brand} ${v.model} removed from garage.` });
+                        }}
                         className="w-7 h-7 bg-white hover:bg-red-50 border border-gray-150 hover:border-red-200 text-gray-400 hover:text-red-500 rounded-lg flex items-center justify-center transition-all shadow-sm"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -311,7 +358,8 @@ export default function ProfilePage() {
                     placeholder="e.g. Porsche"
                     value={vBrand}
                     onChange={(e) => setVBrand(e.target.value)}
-                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                    disabled={isAddingVehicle}
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
                   />
                 </div>
                 <div>
@@ -322,7 +370,8 @@ export default function ProfilePage() {
                     placeholder="e.g. 911 GT3 RS"
                     value={vModel}
                     onChange={(e) => setVModel(e.target.value)}
-                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                    disabled={isAddingVehicle}
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -334,7 +383,8 @@ export default function ProfilePage() {
                       placeholder="e.g. 2024"
                       value={vYear}
                       onChange={(e) => setVYear(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                      disabled={isAddingVehicle}
+                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                   <div>
@@ -345,13 +395,21 @@ export default function ProfilePage() {
                       placeholder="e.g. 3500"
                       value={vMileage}
                       onChange={(e) => setVMileage(e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                      disabled={isAddingVehicle}
+                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                 </div>
                 <div className="pt-4">
-                  <Button type="submit" fullWidth className="h-12 bg-[#FF2D2D] text-white hover:bg-red-600 font-bold">
-                    Park Vehicle In Garage
+                  <Button type="submit" fullWidth disabled={isAddingVehicle} className="h-12 bg-[#FF2D2D] text-white hover:bg-red-600 font-bold">
+                    {isAddingVehicle ? (
+                      <div className="flex items-center gap-2">
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        Adding...
+                      </div>
+                    ) : (
+                      'Park Vehicle In Garage'
+                    )}
                   </Button>
                 </div>
               </form>

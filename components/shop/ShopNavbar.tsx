@@ -1,14 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { Menu, X, Bell, User } from 'lucide-react';
 import { CartButton } from '../shop/CartButton';
+import { useAuthStore } from '../../store/authStore';
 
 export function ShopNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { scrollY } = useScroll();
+  const { isAuthenticated, user } = useAuthStore();
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    useAuthStore.persist.rehydrate();
+    setHydrated(true);
+  }, []);
 
   const backgroundColor = useTransform(scrollY, [0, 50], ['rgba(255,255,255,0)', 'rgba(255,255,255,0.85)']);
   const borderColor = useTransform(scrollY, [0, 50], ['rgba(229,231,235,0)', 'rgba(229,231,235,0.5)']);
@@ -51,27 +59,52 @@ export function ShopNavbar() {
 
           {/* Desktop actions */}
           <div className="hidden md:flex items-center gap-3">
-            {/* Notification bell */}
-            <motion.button
-              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-              className="relative w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-            >
-              <Bell className="w-4.5 h-4.5 text-gray-600" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#FF2D2D] shadow-[0_0_6px_rgba(255,45,45,0.7)]" />
-            </motion.button>
+            {hydrated && isAuthenticated ? (
+              <>
+                {/* Notification bell */}
+                <Link href="/dashboard">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                    className="relative w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                  >
+                    <Bell className="w-4.5 h-4.5 text-gray-600" />
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#FF2D2D] shadow-[0_0_6px_rgba(255,45,45,0.7)]" />
+                  </motion.div>
+                </Link>
 
-            {/* Cart */}
-            <CartButton variant="navbar" />
+                {/* Cart */}
+                <CartButton variant="navbar" />
 
-            {/* Avatar */}
-            <Link href="/login">
-              <motion.div
-                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center cursor-pointer shadow-sm hover:shadow-md transition-shadow"
-              >
-                <User className="w-4.5 h-4.5 text-white" />
-              </motion.div>
-            </Link>
+                {/* Avatar — link to dashboard */}
+                <Link href="/dashboard">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                    className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center cursor-pointer shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+                  >
+                    {user?.avatar ? (
+                      <img src={user.avatar} alt="avatar" className="object-cover w-full h-full" />
+                    ) : (
+                      <User className="w-4.5 h-4.5 text-white" />
+                    )}
+                  </motion.div>
+                </Link>
+              </>
+            ) : (
+              <>
+                {/* Cart */}
+                <CartButton variant="navbar" />
+
+                {/* Sign In */}
+                <Link href="/signin">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                    className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center cursor-pointer shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <User className="w-4.5 h-4.5 text-white" />
+                  </motion.div>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile: cart + hamburger */}
@@ -119,16 +152,26 @@ export function ShopNavbar() {
                 transition={{ delay: 0.3 }}
                 className="flex flex-col gap-4 w-full max-w-sm mt-8"
               >
-                <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                  <button className="w-full h-12 rounded-2xl border border-gray-200 text-gray-900 font-semibold text-base hover:bg-gray-50 transition-colors">
-                    Sign In
-                  </button>
-                </Link>
-                <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
-                  <button className="w-full h-12 rounded-2xl bg-[#FF2D2D] text-white font-semibold text-base shadow-[0_0_20px_rgba(255,45,45,0.3)] hover:shadow-[0_0_30px_rgba(255,45,45,0.5)] transition-all">
-                    Get Started Free
-                  </button>
-                </Link>
+                {hydrated && isAuthenticated ? (
+                  <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                    <button className="w-full h-12 rounded-2xl bg-[#FF2D2D] text-white font-semibold text-base shadow-[0_0_20px_rgba(255,45,45,0.3)] hover:shadow-[0_0_30px_rgba(255,45,45,0.5)] transition-all">
+                      Go to Dashboard
+                    </button>
+                  </Link>
+                ) : (
+                  <>
+                    <Link href="/signin" onClick={() => setMobileMenuOpen(false)}>
+                      <button className="w-full h-12 rounded-2xl border border-gray-200 text-gray-900 font-semibold text-base hover:bg-gray-50 transition-colors">
+                        Sign In
+                      </button>
+                    </Link>
+                    <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
+                      <button className="w-full h-12 rounded-2xl bg-[#FF2D2D] text-white font-semibold text-base shadow-[0_0_20px_rgba(255,45,45,0.3)] hover:shadow-[0_0_30px_rgba(255,45,45,0.5)] transition-all">
+                        Get Started Free
+                      </button>
+                    </Link>
+                  </>
+                )}
               </motion.div>
             </div>
           </motion.div>

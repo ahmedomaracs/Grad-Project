@@ -1,6 +1,17 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { useAuthStore } from '../../store/authStore';
 
 export function Header() {
+  const { user } = useAuthStore();
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    useAuthStore.persist.rehydrate();
+    setHydrated(true);
+  }, []);
+
   return (
     <div className="flex flex-col border-b border-[#1E2939] bg-[#101828] w-full h-[72px] justify-center px-[16px]">
       <div className="flex flex-row items-center justify-between w-full max-w-[1440px] mx-auto">
@@ -31,19 +42,35 @@ export function Header() {
         {/* Right Side: User Profile & Actions */}
         <div className="flex flex-row items-center gap-[16px]">
           {/* User Profile Badge */}
-          <div className="flex flex-row items-center pl-[16px] pr-[4px] py-[4px] gap-[12px] border border-[#364153] rounded-[33554400px]">
-            <div className="flex flex-col">
-              <span className="text-white text-[14px] font-bold leading-[20px] text-right font-['Arimo']">
-                vhbjklnm
-              </span>
-              <span className="text-[#99A1AF] text-[12px] font-normal leading-[16px] text-right font-['Arimo']">
-                Administrator
-              </span>
+          {hydrated && user ? (
+            <div className="flex flex-row items-center pl-[16px] pr-[4px] py-[4px] gap-[12px] border border-[#364153] rounded-[33554400px]">
+              <div className="flex flex-col">
+                <span className="text-white text-[14px] font-bold leading-[20px] text-right font-['Arimo']">
+                  {user.name}
+                </span>
+                <span className="text-[#99A1AF] text-[12px] font-normal leading-[16px] text-right font-['Arimo']">
+                  {user.role}
+                </span>
+              </div>
+              <div className="w-[32px] h-[32px] flex flex-row justify-center items-center rounded-full bg-[#E7000B] overflow-hidden">
+                 {user.avatar ? (
+                   <img src={user.avatar} alt={user.name} className="object-cover w-full h-full" />
+                 ) : (
+                   <span className="text-white text-[14px] font-bold font-['Arimo'] uppercase">
+                     {user.name.charAt(0)}
+                   </span>
+                 )}
+              </div>
             </div>
-            <div className="w-[32px] h-[32px] flex flex-row justify-center items-center rounded-full bg-[#E7000B]">
-               <span className="text-white text-[14px] font-bold font-['Arimo']">V</span>
+          ) : (
+            <div className="flex flex-row items-center pl-[16px] pr-[4px] py-[4px] gap-[12px] border border-[#364153] rounded-[33554400px]">
+              <div className="flex flex-col">
+                <span className="text-white text-[14px] font-bold leading-[20px] text-right font-['Arimo']">
+                  Loading...
+                </span>
+              </div>
             </div>
-          </div>
+          )}
           
           {/* Settings/Notification Icon */}
           <button className="w-[40px] h-[40px] rounded-[10px] flex items-center justify-center bg-transparent hover:bg-[#1E2939] border border-[#364153] transition-colors cursor-pointer relative">

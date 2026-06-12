@@ -4,12 +4,38 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShoppingCart, Plus, Minus, Trash2, ArrowRight, PackageOpen } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useCartStore } from '../../store/cartStore';
+import { useAuthStore } from '../../store/authStore';
 
 export function CartDrawer() {
-  const { items, isOpen, closeCart, removeItem, updateQuantity, totalItems, totalPrice } = useCartStore();
+  const router = useRouter();
+  const { items, isOpen, closeCart, removeItem, updateQuantity, clearCart, totalItems, totalPrice } = useCartStore();
+  const { user, checkoutCart } = useAuthStore();
   const count = totalItems();
   const total = totalPrice();
+
+  const handleCheckout = () => {
+    // Task A: fire cross-role event — creates MerchantOrders + notifies each Merchant
+    if (user && items.length > 0) {
+      checkoutCart(
+        items.map((i) => ({
+          productLabel: i.product.name,
+          // In a real system, each Product carries a merchantId field.
+          // We use a stable fallback so the Merchant demo account (keyed by email) receives the alert.
+          merchantId: (i.product as any).merchantId ?? 'merchant@automate.com',
+          merchantName: (i.product as any).merchantName ?? 'Automate Merchant',
+          totalPrice: i.product.price * i.quantity,
+          deliveryType: 'standard' as const,
+        })),
+        user.email,
+        user.name
+      );
+      clearCart();
+    }
+    closeCart();
+    router.push('/shop/checkout');
+  };
 
   return (
     <AnimatePresence>
@@ -141,8 +167,12 @@ export function CartDrawer() {
                     <span className="font-bold text-gray-900 text-lg">Total</span>
                     <span className="font-extrabold text-gray-900 text-xl">${total.toFixed(2)}</span>
                   </div>
-                  <motion.button whileHover={{ scale: 1.02, y: -1 }} whileTap={{ scale: 0.98 }}
-                    className="w-full flex items-center justify-center gap-3 h-14 rounded-2xl bg-[#FF2D2D] text-white font-semibold text-base shadow-[0_0_30px_rgba(255,45,45,0.35)] hover:shadow-[0_0_40px_rgba(255,45,45,0.55)] transition-all duration-300 relative overflow-hidden group">
+                  <motion.button 
+                    whileHover={{ scale: 1.02, y: -1 }} 
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleCheckout}
+                    className="w-full flex items-center justify-center gap-3 h-14 rounded-2xl bg-[#FF2D2D] text-white font-semibold text-base shadow-[0_0_30px_rgba(255,45,45,0.35)] hover:shadow-[0_0_40px_rgba(255,45,45,0.55)] transition-all duration-300 relative overflow-hidden group"
+                  >
                     <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover:animate-shimmer" />
                     <span>Proceed to Checkout</span>
                     <ArrowRight className="w-5 h-5" />

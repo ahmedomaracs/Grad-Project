@@ -17,6 +17,7 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { Logo } from '../ui/Logo';
 
 export function DashboardSidebar() {
   const pathname = usePathname();
@@ -41,24 +42,11 @@ export function DashboardSidebar() {
     <motion.aside
       animate={{ width: collapsed ? 80 : 260 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      className="hidden md:flex flex-col h-screen sticky top-0 bg-white border-r border-gray-150 select-none flex-shrink-0 z-30"
+      className="hidden md:flex flex-col h-full flex-shrink-0 border-r border-gray-200 bg-white justify-between select-none z-30"
     >
       {/* Brand Header */}
       <div className="h-20 flex items-center justify-between px-6 border-b border-gray-150">
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 bg-gradient-to-br from-[#FF2D2D] to-red-600 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(255,45,45,0.4)] transform transition-transform group-hover:scale-105">
-            <span className="text-white font-bold text-xl">A</span>
-          </div>
-          {!collapsed && (
-            <motion.span 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="font-extrabold text-xl tracking-tight text-gray-900"
-            >
-              Automate
-            </motion.span>
-          )}
-        </Link>
+        <Logo showText={!collapsed} />
 
         {/* Collapse button */}
         {!collapsed && (

@@ -30,7 +30,7 @@ export function CategoryTabs({ active, onChange }: CategoryTabsProps) {
             onHoverStart={() => setHoveredCat(cat)}
             onHoverEnd={() => setHoveredCat(null)}
             whileHover={{ y: -1 }}
-            whileTap={{ scale: 0.96 }}
+            whileTap={{ scale: 0.95 }}
             className={cn(
               'relative flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap',
               isActive

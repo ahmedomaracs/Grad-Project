@@ -6,6 +6,7 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { Menu, X } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useAuthStore } from '../../store/authStore';
+import { Logo } from '../ui/Logo';
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -44,12 +45,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#FF2D2D] to-red-600 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(255,45,45,0.4)] transform transition-transform group-hover:scale-105 group-hover:shadow-[0_0_25px_rgba(255,45,45,0.6)]">
-              <span className="text-white font-bold text-xl leading-none">A</span>
-            </div>
-            <span className="font-bold text-2xl tracking-tight text-gray-900">Automate</span>
-          </Link>
+          <Logo showText={true} />
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">

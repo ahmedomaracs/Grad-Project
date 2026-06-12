@@ -3,75 +3,119 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-// Let's implement robust, reliable form logic that runs flawlessly in any environment.
-import { ArrowLeft, User, Phone, Mail, Lock, ShieldCheck, Star } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { ArrowLeft, User, Phone, Mail, Lock, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { useAuthStore, UserRole } from '../../store/authStore';
+import { useLocalDB } from '../../store/localDB';
+import { useToastStore } from '../../store/toastStore';
+import { getRoleDashboardPath } from '../../lib/navigation';
+
+// Define Zod signup schema
+const signupSchema = z.object({
+  name: z.string().min(3, 'Full name is required (min 3 characters)'),
+  phone: z.string().min(8, 'Phone number must be at least 8 digits'),
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  confirmPassword: z.string().min(6, 'Confirm password must be at least 6 characters'),
+  agree: z.boolean().refine(val => val === true, {
+    message: 'You must agree to the terms and privacy policy'
+  }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword']
+});
+
+type SignupFormValues = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
   const router = useRouter();
   const loginUser = useAuthStore((state) => state.login);
+  const registerMechanic = useLocalDB((state) => state.registerMechanic);
+  const addToast = useToastStore((state) => state.addToast);
+  
   const [role, setRole] = useState<UserRole>('Client');
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-
-  // Form Fields
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [agree, setAgree] = useState(false);
-
-  // Validation States
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [pwdStrength, setPwdStrength] = useState(0);
+
+  // Initialize React Hook Form with Zod schema resolver
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      name: '',
+      phone: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      agree: false,
+    }
+  });
+
+  const passwordVal = watch('password');
 
   // Calculate Password Strength
   useEffect(() => {
     let score = 0;
-    if (!password) {
+    if (!passwordVal) {
       setPwdStrength(0);
       return;
     }
-    if (password.length >= 6) score += 1;
-    if (/[A-Z]/.test(password)) score += 1;
-    if (/[0-9]/.test(password)) score += 1;
-    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+    if (passwordVal.length >= 6) score += 1;
+    if (/[A-Z]/.test(passwordVal)) score += 1;
+    if (/[0-9]/.test(passwordVal)) score += 1;
+    if (/[^A-Za-z0-9]/.test(passwordVal)) score += 1;
     setPwdStrength(score);
-  }, [password]);
+  }, [passwordVal]);
 
-  const validate = () => {
-    const errs: Record<string, string> = {};
-    if (!name.trim()) errs.name = 'Full name is required';
-    if (!phone.trim()) errs.phone = 'Phone number is required';
-    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) errs.email = 'Valid email is required';
-    if (password.length < 6) errs.password = 'Password must be at least 6 characters';
-    if (password !== confirmPassword) errs.confirmPassword = 'Passwords do not match';
-    if (!agree) errs.agree = 'You must agree to terms';
-    
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
-
+  const onSubmit = async (data: SignupFormValues) => {
     setIsLoading(true);
     // Simulate API registration delay
     await new Promise((resolve) => setTimeout(resolve, 1500));
     setIsLoading(false);
 
     setSuccess(true);
-    loginUser(email, role, name);
+    loginUser(data.email, role, data.name, true);
 
-    // Dynamic redirect
+    // On Mechanic Signup: push profile into the global mechanics registry
+    if (role === 'Mechanic') {
+      registerMechanic({
+        id: 'mc_' + Math.random().toString(36).substr(2, 9),
+        name: data.name,
+        email: data.email,
+        specialization: 'General Automotive Services',
+        rating: 5.0,
+        garageName: `${data.name}'s Workshop`,
+        available: true,
+      });
+    }
+
+    addToast({ type: 'success', title: 'Account Created!', message: `Welcome to Automate as ${role}.` });
+
+    // Role-aware redirect
+    const dashboardPath = getRoleDashboardPath(role);
     setTimeout(() => {
-      router.push('/dashboard');
+      router.push(dashboardPath);
     }, 1800);
+  };
+
+  const handleTermsClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    addToast({ type: 'info', title: 'Terms of Service', message: 'By using Automate, you agree to our standard terms. Full document available upon public launch.' });
+  };
+
+  const handlePrivacyClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    addToast({ type: 'info', title: 'Privacy Policy', message: 'We protect your data with enterprise-grade encryption. Full policy available upon public launch.' });
   };
 
   return (
@@ -114,7 +158,7 @@ export default function SignupPage() {
 
                 {/* Role Switcher */}
                 <div className="mb-6 bg-gray-50 p-1.5 rounded-2xl border border-gray-100 flex gap-2">
-                  {(['Client', 'Mechanic', 'Partner'] as UserRole[]).map((r) => (
+                  {(['Client', 'Mechanic', 'Merchant'] as UserRole[]).map((r) => (
                     <button
                       key={r}
                       type="button"
@@ -131,7 +175,7 @@ export default function SignupPage() {
                 </div>
 
                 {/* Registration Form */}
-                <form onSubmit={handleRegister} className="space-y-4">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                   {/* Name & Phone */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
@@ -139,16 +183,16 @@ export default function SignupPage() {
                       <div className="relative">
                         <input
                           type="text"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
                           placeholder="Ahmed Al-Masri"
-                          className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors ${
+                          {...register('name')}
+                          disabled={isLoading}
+                          className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
                             errors.name ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#FF2D2D]/40'
                           }`}
                         />
                         <User className="absolute left-3.5 top-3 w-4.5 h-4.5 text-gray-400" />
                       </div>
-                      {errors.name && <p className="text-xs font-bold text-red-500">{errors.name}</p>}
+                      {errors.name && <p className="text-xs font-bold text-red-500">{errors.name.message}</p>}
                     </div>
 
                     <div className="space-y-1">
@@ -156,16 +200,16 @@ export default function SignupPage() {
                       <div className="relative">
                         <input
                           type="tel"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
                           placeholder="+962 7 9876 5432"
-                          className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors ${
+                          {...register('phone')}
+                          disabled={isLoading}
+                          className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
                             errors.phone ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#FF2D2D]/40'
                           }`}
                         />
                         <Phone className="absolute left-3.5 top-3 w-4.5 h-4.5 text-gray-400" />
                       </div>
-                      {errors.phone && <p className="text-xs font-bold text-red-500">{errors.phone}</p>}
+                      {errors.phone && <p className="text-xs font-bold text-red-500">{errors.phone.message}</p>}
                     </div>
                   </div>
 
@@ -175,16 +219,16 @@ export default function SignupPage() {
                     <div className="relative">
                       <input
                         type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
                         placeholder="ahmed@example.com"
-                        className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors ${
+                        {...register('email')}
+                        disabled={isLoading}
+                        className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
                           errors.email ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#FF2D2D]/40'
                         }`}
                       />
                       <Mail className="absolute left-3.5 top-3 w-4.5 h-4.5 text-gray-400" />
                     </div>
-                    {errors.email && <p className="text-xs font-bold text-red-500">{errors.email}</p>}
+                    {errors.email && <p className="text-xs font-bold text-red-500">{errors.email.message}</p>}
                   </div>
 
                   {/* Passwords */}
@@ -194,16 +238,16 @@ export default function SignupPage() {
                       <div className="relative">
                         <input
                           type="password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
                           placeholder="••••••••"
-                          className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors ${
+                          {...register('password')}
+                          disabled={isLoading}
+                          className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
                             errors.password ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#FF2D2D]/40'
                           }`}
                         />
                         <Lock className="absolute left-3.5 top-3 w-4.5 h-4.5 text-gray-400" />
                       </div>
-                      {errors.password && <p className="text-xs font-bold text-red-500">{errors.password}</p>}
+                      {errors.password && <p className="text-xs font-bold text-red-500">{errors.password.message}</p>}
                     </div>
 
                     <div className="space-y-1">
@@ -211,21 +255,21 @@ export default function SignupPage() {
                       <div className="relative">
                         <input
                           type="password"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
                           placeholder="••••••••"
-                          className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors ${
+                          {...register('confirmPassword')}
+                          disabled={isLoading}
+                          className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
                             errors.confirmPassword ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#FF2D2D]/40'
                           }`}
                         />
                         <Lock className="absolute left-3.5 top-3 w-4.5 h-4.5 text-gray-400" />
                       </div>
-                      {errors.confirmPassword && <p className="text-xs font-bold text-red-500">{errors.confirmPassword}</p>}
+                      {errors.confirmPassword && <p className="text-xs font-bold text-red-500">{errors.confirmPassword.message}</p>}
                     </div>
                   </div>
 
                   {/* Password Strength Indicator */}
-                  {password && (
+                  {passwordVal && (
                     <div className="space-y-1.5 pt-1">
                       <div className="flex justify-between items-center text-xs font-bold">
                         <span className="text-gray-400">Password Strength:</span>
@@ -236,7 +280,7 @@ export default function SignupPage() {
                         </span>
                       </div>
                       <div className="flex gap-1 h-1">
-                        {[1, 2, 4, 4].map((step, idx) => (
+                        {[1, 2, 3, 4].map((step, idx) => (
                           <div
                             key={idx}
                             className={`flex-1 rounded-full transition-all duration-300 ${
@@ -259,18 +303,17 @@ export default function SignupPage() {
                     <input
                       id="agree"
                       type="checkbox"
-                      checked={agree}
-                      onChange={(e) => setAgree(e.target.checked)}
+                      {...register('agree')}
                       className="w-4.5 h-4.5 mt-0.5 rounded border-gray-300 focus:ring-red-400 accent-[#FF2D2D] cursor-pointer"
                     />
                     <label htmlFor="agree" className="ml-2.5 text-sm font-semibold text-gray-500 leading-snug cursor-pointer select-none">
                       I agree to the{' '}
-                      <Link href="#" className="text-[#FF2D2D] hover:underline">Terms of Service</Link>
+                      <button type="button" onClick={handleTermsClick} className="text-[#FF2D2D] hover:underline">Terms of Service</button>
                       {' '}and{' '}
-                      <Link href="#" className="text-[#FF2D2D] hover:underline">Privacy Policy</Link>.
+                      <button type="button" onClick={handlePrivacyClick} className="text-[#FF2D2D] hover:underline">Privacy Policy</button>.
                     </label>
                   </div>
-                  {errors.agree && <p className="text-xs font-bold text-red-500">{errors.agree}</p>}
+                  {errors.agree && <p className="text-xs font-bold text-red-500">{errors.agree.message}</p>}
 
                   {/* Submit Button */}
                   <div className="pt-3">
@@ -284,7 +327,7 @@ export default function SignupPage() {
                       {isLoading ? (
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       ) : (
-                        `Register as ${role}`
+                        `Sign Up as ${role}`
                       )}
                     </Button>
                   </div>
@@ -303,15 +346,18 @@ export default function SignupPage() {
                     <button
                       key={provider}
                       type="button"
+                      disabled={isLoading}
                       onClick={async () => {
                         setIsLoading(true);
                         await new Promise((r) => setTimeout(r, 1000));
                         setIsLoading(false);
-                        loginUser(`${provider.toLowerCase()}@automate.com`, role, `${provider} Partner`);
+                        loginUser(`${provider.toLowerCase()}@automate.com`, role, `${provider} ${role}`, true);
                         setSuccess(true);
-                        setTimeout(() => router.push('/dashboard'), 1500);
+                        addToast({ type: 'success', title: 'Registered!', message: `Account created with ${provider} as ${role}.` });
+                        const dashboardPath = getRoleDashboardPath(role);
+                        setTimeout(() => router.push(dashboardPath), 1500);
                       }}
-                      className="flex items-center justify-center h-11 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 font-bold text-xs text-gray-700 transition-colors"
+                      className="flex items-center justify-center h-11 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 font-bold text-xs text-gray-700 transition-colors disabled:opacity-60"
                     >
                       {provider}
                     </button>
