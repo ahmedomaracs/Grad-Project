@@ -187,40 +187,57 @@ export function Navbar() {
                 {/* FLOATING ACTION MENU PANEL */}
                 {isDropdownOpen && (
                   <div 
-                    className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-72 bg-white border border-slate-100 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150"
+                    className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-80 bg-white border border-slate-100 rounded-3xl shadow-xl p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-200"
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
                   >
-                    {/* ADVANCED FLAGSHIP FEATURE: BOOK A MECHANIC */}
+                    {/* Option A: Core Mechanic Fleet Dispatch System Channel */}
                     <Link 
                       href="/booking" 
                       onClick={() => setIsDropdownOpen(false)}
-                      className="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 group/item transition-colors"
+                      className="flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50 transition-colors group"
                     >
-                      <div className="text-base p-2 bg-red-50 text-[#E62424] rounded-lg group-hover/item:bg-[#E62424] group-hover/item:text-white transition-colors flex-shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-red-50 text-[#E62424] flex items-center justify-center font-bold transition-colors group-hover:bg-[#E62424] group-hover:text-white shrink-0">
                         🔧
                       </div>
                       <div>
-                        <h4 className="text-xs font-black text-slate-900 uppercase tracking-tight">Book a Mechanic</h4>
-                        <p className="text-[11px] text-slate-400 font-medium mt-0.5 leading-normal">Schedule on-site diagnostics & certified repairs.</p>
+                        <h4 className="text-xs font-black uppercase text-slate-900 tracking-tight">Book A Mechanic</h4>
+                        <p className="text-[11px] text-slate-400 font-medium leading-normal mt-0.5">Schedule on-site diagnostics & urgent repairs.</p>
                       </div>
                     </Link>
 
-                    {/* TRACK REPAIR SUB-FEATURE */}
+                    {/* Option B: REFACTORED INSTANT SERVICES REDIRECT LINK (SMOOTH SCROLL TARGET ANCHOR) */}
                     <Link 
-                      href="/booking/status" 
-                      onClick={() => setIsDropdownOpen(false)}
-                      className="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 group/item transition-colors mt-0.5"
+                      href="/#services" 
+                      onClick={(e) => {
+                        setIsDropdownOpen(false);
+                        handleServicesClick(e);
+                      }}
+                      className="flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50 transition-colors group mt-1"
                     >
-                      <div className="text-base p-2 bg-slate-50 text-slate-600 rounded-lg group-hover/item:bg-slate-950 group-hover/item:text-white transition-colors flex-shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-red-50 text-[#E62424] flex items-center justify-center font-bold transition-colors group-hover:bg-[#E62424] group-hover:text-white shrink-0">
+                        ⚡
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black uppercase text-slate-900 tracking-tight">Instant Services</h4>
+                        <p className="text-[11px] text-slate-400 font-medium leading-normal mt-0.5">Browse our 8-core technical solution catalogs.</p>
+                      </div>
+                    </Link>
+
+                    {/* Option C: LIVE TRACK REPAIR / MY GARAGE PROFILE GATEWAY */}
+                    <Link 
+                      href="/dashboard/my-garage" 
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50 transition-colors group mt-1"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold transition-colors group-hover:bg-slate-950 group-hover:text-white shrink-0">
                         📋
                       </div>
                       <div>
-                        <h4 className="text-xs font-black text-slate-900 uppercase tracking-tight">Live Track Repair</h4>
-                        <p className="text-[11px] text-slate-400 font-medium mt-0.5 leading-normal">Real-time status updates from your assigned technician.</p>
+                        <h4 className="text-xs font-black uppercase text-slate-900 tracking-tight">Live Track Repair</h4>
+                        <p className="text-[11px] text-slate-400 font-medium leading-normal mt-0.5">Real-time fleet updates from your assigned technician.</p>
                       </div>
                     </Link>
-
                   </div>
                 )}
               </div>

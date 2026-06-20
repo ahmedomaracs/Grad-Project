@@ -74,23 +74,38 @@ export function ShopNavbar() {
 
       {/* Desktop nav */}
       <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600 transition-colors">
+        {/* 1. Browse Parts Tab */}
         <Link 
           href="/shop" 
-          className="text-[#E62424] border-b-2 border-[#E62424] pb-1 font-bold transition-all duration-150"
+          className={`text-sm font-bold pb-1 border-b-2 transition-all ${
+            pathname === '/shop' 
+              ? 'text-slate-900 border-[#E62424]' 
+              : 'text-slate-500 border-transparent hover:text-[#E62424]'
+          }`}
         >
           Browse Parts
         </Link>
 
+        {/* 2. Connected Garage View Link */}
         <Link 
-          href="/garage" 
-          className="hover:text-slate-900 hover:scale-[1.01] transition-all duration-150"
+          href="/dashboard/my-garage" 
+          className={`text-sm font-bold pb-1 border-b-2 transition-all ${
+            pathname === '/dashboard/my-garage' 
+              ? 'text-slate-900 border-[#E62424]' 
+              : 'text-slate-500 border-transparent hover:text-[#E62424]'
+          }`}
         >
           My Garage
         </Link>
 
+        {/* 3. NEWLY CONNECTED: Order History Link */}
         <Link 
-          href="/orders" 
-          className="hover:text-slate-900 hover:scale-[1.01] transition-all duration-150"
+          href="/dashboard/orders" 
+          className={`text-sm font-bold pb-1 border-b-2 transition-all ${
+            pathname === '/dashboard/orders' 
+              ? 'text-slate-900 border-[#E62424]' 
+              : 'text-slate-500 border-transparent hover:text-[#E62424]'
+          }`}
         >
           Order History
         </Link>

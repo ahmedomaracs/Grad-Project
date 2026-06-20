@@ -54,7 +54,7 @@ export function Services() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
+
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <motion.div
@@ -80,7 +80,7 @@ export function Services() {
           {servicesData.map((service) => {
             const IconComponent = service.icon;
             const serviceImage = serviceImageMap[service.slug];
-            
+
             return (
               <button
                 key={service.id}
@@ -93,12 +93,12 @@ export function Services() {
                 {/* Image Section */}
                 <div className="w-full h-36 relative bg-slate-200 overflow-hidden shrink-0">
                   {serviceImage && (
-                    <Image 
-                      src={serviceImage} 
-                      alt={service.name} 
-                      fill 
+                    <Image
+                      src={serviceImage}
+                      alt={service.name}
+                      fill
                       sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                      className="object-cover group-hover/card:scale-110 transition-transform duration-500" 
+                      className="object-cover group-hover/card:scale-110 transition-transform duration-500"
                     />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent" />
