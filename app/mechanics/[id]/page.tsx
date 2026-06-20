@@ -63,7 +63,7 @@ export default function MechanicProfilePage({ params }: { params: Promise<{ id: 
       <WorkspaceLayout>
         <div className="py-24 text-center">
           <p className="text-sm text-gray-400 font-bold uppercase tracking-wider">Technician Not Found</p>
-          <Link href="/mechanics" className="mt-4 inline-block text-[#FF2D2D] hover:underline font-bold">
+          <Link href="/mechanics" className="mt-4 inline-block text-[#E12F2F] hover:underline font-bold">
             Back to Directory
           </Link>
         </div>
@@ -87,14 +87,14 @@ export default function MechanicProfilePage({ params }: { params: Promise<{ id: 
     <WorkspaceLayout>
       <div className="space-y-8 select-none max-w-5xl mx-auto">
         {/* Back navigation */}
-        <Link href="/mechanics" className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-[#FF2D2D] transition-colors group">
+        <Link href="/mechanics" className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-[#E12F2F] transition-colors group">
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           <span>Back to Mechanics</span>
         </Link>
 
         {/* Profile Card */}
         <div className="bg-white border border-gray-150 rounded-3xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-36 h-36 bg-gradient-to-bl from-[#FF2D2D]/5 to-transparent rounded-bl-full pointer-events-none" />
+          <div className="absolute top-0 right-0 w-36 h-36 bg-gradient-to-bl from-[#E12F2F]/5 to-transparent rounded-bl-full pointer-events-none" />
           
           <div className="flex flex-col md:flex-row gap-6 items-start justify-between relative z-10">
             <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center">
@@ -121,7 +121,7 @@ export default function MechanicProfilePage({ params }: { params: Promise<{ id: 
                   </span>
                   <span>·</span>
                   <span className="flex items-center gap-0.5 text-gray-900 font-extrabold">
-                    <DollarSign className="w-4 h-4 text-[#FF2D2D]" />
+                    <DollarSign className="w-4 h-4 text-[#E12F2F]" />
                     {mechanic.price} Standard Rate
                   </span>
                 </div>
@@ -130,7 +130,7 @@ export default function MechanicProfilePage({ params }: { params: Promise<{ id: 
 
             <button
               onClick={() => toggleFavoriteMechanic(mechanic.id)}
-              className="w-11 h-11 bg-gray-50 hover:bg-red-50 border border-gray-200 text-[#FF2D2D] rounded-xl flex items-center justify-center hover:scale-105 transition-all self-start md:self-auto"
+              className="w-11 h-11 bg-gray-50 hover:bg-red-50 border border-gray-200 text-[#E12F2F] rounded-xl flex items-center justify-center hover:scale-105 transition-all self-start md:self-auto"
             >
               <Heart className={`w-5 h-5 ${mechanic.isFavorite ? 'fill-current' : 'text-gray-400'}`} />
             </button>
@@ -144,7 +144,7 @@ export default function MechanicProfilePage({ params }: { params: Promise<{ id: 
             {/* Certifications Card */}
             <div className="bg-white rounded-3xl border border-gray-150 p-6">
               <h3 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Award className="w-4.5 h-4.5 text-[#FF2D2D]" />
+                <Award className="w-4.5 h-4.5 text-[#E12F2F]" />
                 Professional Certifications
               </h3>
               <ul className="space-y-3">
@@ -216,7 +216,7 @@ export default function MechanicProfilePage({ params }: { params: Promise<{ id: 
                         <select
                           value={bookingService}
                           onChange={(e) => setBookingService(e.target.value)}
-                          className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 cursor-pointer"
+                          className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#E12F2F]/40 cursor-pointer"
                         >
                           <option value="Diagnostics Inspection">Diagnostics Session ($49.00)</option>
                           <option value="Performance Tuning">Custom Calibration ($299.00)</option>
@@ -231,7 +231,7 @@ export default function MechanicProfilePage({ params }: { params: Promise<{ id: 
                           required
                           value={bookingDate}
                           onChange={(e) => setBookingDate(e.target.value)}
-                          className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40"
+                          className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#E12F2F]/40"
                         />
                       </div>
 
@@ -242,7 +242,7 @@ export default function MechanicProfilePage({ params }: { params: Promise<{ id: 
                           required
                           value={bookingTime}
                           onChange={(e) => setBookingTime(e.target.value)}
-                          className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40"
+                          className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#E12F2F]/40"
                         />
                       </div>
 
@@ -252,7 +252,7 @@ export default function MechanicProfilePage({ params }: { params: Promise<{ id: 
                           disabled={!bookingDate || !bookingTime}
                           fullWidth
                           size="lg"
-                          className="h-12 bg-[#FF2D2D] text-white hover:bg-red-600 shadow-md shadow-red-500/25 border-none font-bold text-sm"
+                          className="h-12 bg-[#E12F2F] text-white hover:bg-red-600 shadow-md shadow-red-500/25 border-none font-bold text-sm"
                         >
                           Book Appointment ($49)
                         </Button>

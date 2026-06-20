@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Check, Zap } from 'lucide-react';
+import { ShoppingCart, Check, Zap, X, Heart, Star, Plus } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Product } from '../../types/shop';
 import { useCartStore } from '../../store/cartStore';
 import { RatingStars } from './RatingStars';
@@ -15,11 +17,21 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, index }: ProductCardProps) {
+  const router = useRouter();
   const cardRef = useRef<HTMLDivElement>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
+  const [showQuickSpecsModal, setShowQuickSpecsModal] = useState(false);
   const { addItem, openCart } = useCartStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  // Simulate vehicle verification
+  const isVehicleVerified = index % 3 !== 0;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
@@ -27,7 +39,8 @@ export function ProductCard({ product, index }: ProductCardProps) {
     setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!product.inStock || justAdded) return;
     addItem(product);
     setJustAdded(true);
@@ -39,6 +52,7 @@ export function ProductCard({ product, index }: ProductCardProps) {
     : null;
 
   return (
+    <>
     <motion.div
       ref={cardRef}
       initial={{ opacity: 0, y: 50 }}
@@ -48,169 +62,201 @@ export function ProductCard({ product, index }: ProductCardProps) {
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      style={{
-        transform: isHovered
-          ? `perspective(1000px) rotateX(${(mousePos.y - 170) / 35}deg) rotateY(${-(mousePos.x - 150) / 35}deg)`
-          : 'perspective(1000px) rotateX(0deg) rotateY(0deg)',
-        transition: isHovered ? 'transform 0.05s linear' : 'transform 0.5s ease',
-      }}
-      className="relative group bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl hover:border-[#FF2D2D]/20 transition-shadow duration-500"
+      onClick={() => router.push(`/shop/${product.id}`)}
+      className="group relative bg-white rounded-2xl border border-slate-100/80 p-3 transition-all duration-300 hover:shadow-[0_20px_40px_rgba(0,0,0,0.05)] hover:-translate-y-1 flex flex-col justify-between h-full cursor-pointer"
     >
-      {/* Mouse-following glow */}
-      <div
-        className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-3xl"
-        style={{
-          background: `radial-gradient(350px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255,45,45,0.07), transparent 50%)`,
-        }}
-      />
-
-      {/* Image container */}
-      <div className="relative h-52 bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
-        {/* Shimmer skeleton */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100 animate-pulse" />
-
-        <motion.div
-          animate={{ scale: isHovered ? 1.07 : 1 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute inset-0"
+      {/* Product Image Stage (Noon Style Absolute Layout Layers) */}
+      <div className="bg-slate-50/50 rounded-xl p-4 flex items-center justify-center relative overflow-hidden h-44 border border-slate-100/30">
+        {/* Top Left: Express Badge or Category Priority */}
+        <span className="absolute top-2 left-2 bg-slate-900 text-white font-mono text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded-md shadow-sm">
+          Express
+        </span>
+        
+        {/* Top Right: Wishlist Interaction Node */}
+        <button 
+          onClick={(e) => { e.stopPropagation(); }} 
+          className="absolute top-2 right-2 p-1.5 bg-white rounded-full text-slate-400 hover:text-[#E62424] border border-slate-100 shadow-sm transition-colors duration-200"
         >
-          <Image
-            src={product.image}
-            alt={product.name}
-            fill
-            className="object-contain p-6 z-10 relative"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            onError={(e) => {
-              // Fallback: hide broken img, show placeholder
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
-          />
-        </motion.div>
+          <Heart className="w-3.5 h-3.5" />
+        </button>
 
-        {/* Fallback SVG icon when image fails */}
-        <div className="absolute inset-0 flex items-center justify-center z-0">
-          <svg className="w-20 h-20 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-          </svg>
-        </div>
+        {/* Primary Hardware Image Asset */}
+        <img 
+          src={product.image} 
+          alt={product.name} 
+          className="w-auto h-full max-h-32 object-contain group-hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = 'none';
+          }}
+        />
 
-        {/* Out of stock overlay */}
-        {!product.inStock && (
-          <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-20">
-            <span className="px-4 py-1.5 rounded-full bg-gray-900/90 text-white text-xs font-bold tracking-widest uppercase">
-              Out of Stock
-            </span>
-          </div>
-        )}
-
-        {/* Badge */}
-        {product.badge && product.inStock && (
-          <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            className={cn(
-              'absolute top-3 left-3 z-20 px-3 py-1 rounded-full text-xs font-bold tracking-wide',
-              product.badge === 'Best Seller' && 'bg-amber-500 text-white',
-              product.badge === 'Sale' && 'bg-[#FF2D2D] text-white',
-              product.badge === 'New' && 'bg-blue-500 text-white',
-              product.badge === 'Premium' && 'bg-[#111111] text-white',
-            )}
-          >
-            {product.badge === 'Sale' && discount ? `-${discount}%` : product.badge}
-          </motion.div>
-        )}
-
-        {/* Discount badge */}
-        {discount && product.badge !== 'Sale' && (
-          <div className="absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full bg-green-500 text-white text-xs font-bold">
+        {/* Bottom Right: High-Conversion Discount Overlay Ribbon */}
+        {discount && (
+          <span className="absolute bottom-2 right-2 bg-emerald-500 text-white font-mono font-black text-[10px] px-1.5 py-0.5 rounded-md">
             -{discount}%
-          </div>
+          </span>
         )}
+
+        {/* Premium "Quick Specs" Hover Mask */}
+        <div className="absolute inset-0 bg-slate-950/5 opacity-0 hover:opacity-100 flex items-center justify-center backdrop-blur-[2px] transition-all duration-300 rounded-t-3xl pointer-events-auto cursor-pointer z-30 will-change-[opacity]">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowQuickSpecsModal(true);
+            }}
+            className="bg-white/95 text-slate-950 shadow-xl font-bold text-xs px-4 py-2.5 rounded-xl border border-slate-100 transform translate-y-2 hover:translate-y-0 hover:bg-[#E62424] hover:text-white hover:border-[#E62424] transition-all duration-200 will-change-[transform,opacity]"
+          >
+            Quick Specs
+          </button>
+        </div>
       </div>
 
-      {/* Card body */}
-      <div className="relative z-10 p-5">
-        {/* Brand */}
-        <p className="text-xs font-bold text-[#FF2D2D] uppercase tracking-widest mb-1">{product.brand}</p>
-
-        {/* Title */}
-        <h3 className="font-bold text-gray-900 text-base leading-snug mb-2 group-hover:text-[#FF2D2D] transition-colors duration-300 line-clamp-2">
+      {/* Product Core Typography & Info Rows */}
+      <div className="flex flex-col flex-grow mt-3 space-y-1">
+        {/* Brand Context Label */}
+        <span className="text-[10px] font-bold text-[#E62424] uppercase tracking-wider font-mono">
+          {product.brand}
+        </span>
+        
+        {/* Main Title Heading Block */}
+        <h3 className="text-xs font-semibold text-slate-800 line-clamp-2 h-8 group-hover:text-slate-900 transition-colors">
           {product.name}
         </h3>
-
-        {/* Rating */}
-        <div className="mb-3">
-          <RatingStars rating={product.rating} reviewCount={product.reviewCount} size="sm" />
-        </div>
-
-        {/* Tags */}
-        <div className="flex flex-wrap gap-1 mb-4">
-          {product.tags.slice(0, 2).map((tag) => (
-            <span key={tag} className="px-2 py-0.5 rounded-md bg-gray-50 text-gray-500 text-[11px] font-medium border border-gray-100">
-              {tag}
-            </span>
-          ))}
-        </div>
-
-        {/* Price row */}
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="text-2xl font-extrabold text-gray-900 tracking-tight">${product.price.toFixed(2)}</span>
-            {product.originalPrice && (
-              <span className="text-xs text-gray-400 line-through">${product.originalPrice.toFixed(2)}</span>
-            )}
+        
+        {/* Trust & Star Rating Rows */}
+        <div className="flex items-center gap-1 mt-1">
+          <div className="flex items-center gap-0.5 bg-slate-100 px-1.5 py-0.5 rounded-md">
+            <span className="text-[10px] font-black text-slate-800">{product.rating || '4.6'}</span>
+            <Star className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />
           </div>
-
-          {/* Add to cart button */}
-          <motion.button
-            onClick={handleAddToCart}
-            disabled={!product.inStock}
-            whileHover={product.inStock ? { scale: 1.05, y: -1 } : {}}
-            whileTap={product.inStock ? { scale: 0.95 } : {}}
-            className={cn(
-              'relative flex items-center gap-2 px-4 h-10 rounded-xl text-sm font-semibold overflow-hidden transition-all duration-300',
-              product.inStock
-                ? justAdded
-                  ? 'bg-green-500 text-white shadow-[0_0_16px_rgba(34,197,94,0.4)]'
-                  : 'bg-[#FF2D2D] text-white shadow-[0_0_16px_rgba(255,45,45,0.25)] hover:shadow-[0_0_24px_rgba(255,45,45,0.5)]'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            )}
-          >
-            <AnimatePresence mode="wait">
-              {justAdded ? (
-                <motion.span
-                  key="check"
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  className="flex items-center gap-1.5"
-                >
-                  <Check className="w-4 h-4" />
-                  <span>Added!</span>
-                </motion.span>
-              ) : (
-                <motion.span
-                  key="cart"
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  className="flex items-center gap-1.5"
-                >
-                  <ShoppingCart className="w-4 h-4" />
-                  <span>{product.inStock ? 'Add' : 'N/A'}</span>
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </motion.button>
+          <span className="text-[9px] font-medium text-slate-400 font-mono">({product.reviewCount || '1.2k'})</span>
         </div>
       </div>
 
-      {/* Bottom glow line on hover */}
-      <motion.div
-        animate={{ scaleX: isHovered ? 1 : 0, opacity: isHovered ? 1 : 0 }}
-        transition={{ duration: 0.3 }}
-        className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#FF2D2D] to-transparent origin-center"
-      />
+      {/* Price & Cart Addition Action Base Segment */}
+      <div className="flex items-end justify-between mt-3 pt-2.5 border-t border-slate-100/60">
+        <div className="flex flex-col">
+          {product.originalPrice && (
+            <span className="text-[10px] text-slate-400 font-medium line-through font-mono leading-none">
+              EGP {product.originalPrice.toFixed(2)}
+            </span>
+          )}
+          <span className="text-base font-black text-slate-900 tracking-tight font-mono mt-0.5">
+            EGP {product.price.toFixed(2)}
+          </span>
+        </div>
+
+        {/* Rounded Explicit Action Button Interface */}
+        <button 
+          onClick={handleAddToCart}
+          disabled={!product.inStock}
+          className="bg-slate-50 border border-slate-100 hover:bg-[#E62424] hover:border-[#E62424] text-slate-700 hover:text-white p-2 rounded-xl transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {justAdded ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+        </button>
+      </div>
     </motion.div>
+
+    {/* Quick Specs Micro-Modal Overlay */}
+    {showQuickSpecsModal && mounted && createPortal(
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        {/* Backdrop */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowQuickSpecsModal(false);
+          }}
+          className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm will-change-[opacity]"
+        />
+        
+        {/* Modal Body */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          onClick={(e) => e.stopPropagation()}
+          className="relative bg-white/95 backdrop-blur-lg border border-slate-200 rounded-3xl shadow-2xl max-w-lg w-full p-6 will-change-[transform,opacity]"
+        >
+          <button
+            onClick={() => setShowQuickSpecsModal(false)}
+            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+
+          <div className="flex gap-5 mb-6">
+            <div className="w-24 h-24 relative rounded-xl border border-slate-100 bg-slate-50 flex-shrink-0 flex items-center justify-center overflow-hidden">
+              <Image
+                src={product.image}
+                alt={product.name}
+                fill
+                className="object-contain p-2"
+              />
+            </div>
+            <div className="flex flex-col justify-center">
+              <p className="text-[10px] font-bold text-[#E12F2F] uppercase tracking-widest mb-1">{product.brand}</p>
+              <h4 className="text-lg font-bold text-slate-900 leading-tight mb-2 line-clamp-2">{product.name}</h4>
+              <div className="flex items-center gap-2">
+                <span className="text-xl font-extrabold text-slate-900">${product.price.toFixed(2)}</span>
+                {product.originalPrice && (
+                  <span className="text-sm text-slate-400 line-through">${product.originalPrice.toFixed(2)}</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Technical Specs Table */}
+          <div className="bg-slate-50 rounded-2xl border border-slate-100 p-4 mb-6">
+            <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Technical Indices</h5>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center py-1 border-b border-slate-100/50">
+                <span className="text-xs text-slate-500 font-medium">Part MPN Code</span>
+                <span className="text-xs text-slate-900 font-bold font-mono">MPN-{product.id.toString().padStart(4, '0')}</span>
+              </div>
+              <div className="flex justify-between items-center py-1 border-b border-slate-100/50">
+                <span className="text-xs text-slate-500 font-medium">OEM Reference Cross-Check Key</span>
+                <span className="text-xs text-slate-900 font-bold font-mono">34-11-6-792-{product.id.toString().padStart(3, '0')}</span>
+              </div>
+              <div className="flex justify-between items-center py-1">
+                <span className="text-xs text-slate-500 font-medium">Material Type</span>
+                <span className="text-xs text-slate-900 font-bold">High-Carbon Steel</span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={(e) => {
+              handleAddToCart(e);
+              setTimeout(() => setShowQuickSpecsModal(false), 800);
+            }}
+            disabled={!product.inStock}
+            className={cn(
+              "w-full h-12 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 will-change-[transform,opacity]",
+              product.inStock
+                ? justAdded
+                  ? "bg-green-500 text-white shadow-[0_4px_20px_rgba(34,197,94,0.3)]"
+                  : "bg-[#E62424] text-white hover:bg-[#d01f1f] shadow-[0_4px_20px_rgba(230,36,36,0.2)] hover:shadow-[0_4px_24px_rgba(230,36,36,0.3)] hover:-translate-y-0.5"
+                : "bg-slate-100 text-slate-400 cursor-not-allowed"
+            )}
+          >
+            {justAdded ? (
+              <>
+                <Check className="w-5 h-5" /> Added to Cart
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="w-5 h-5" /> Instant Add to Cart
+              </>
+            )}
+          </button>
+        </motion.div>
+      </div>,
+      document.body
+    )}
+    </>
   );
 }

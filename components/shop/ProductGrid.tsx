@@ -53,9 +53,9 @@ export function ProductGrid({ products, isLoading = false }: ProductGridProps) {
         <motion.div
           animate={{ y: [0, -12, 0] }}
           transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-          className="w-24 h-24 rounded-3xl bg-[#FF2D2D]/8 flex items-center justify-center mb-6"
+          className="w-24 h-24 rounded-3xl bg-[#E12F2F]/8 flex items-center justify-center mb-6"
         >
-          <Package2 className="w-12 h-12 text-[#FF2D2D]/40" />
+          <Package2 className="w-12 h-12 text-[#E12F2F]/40" />
         </motion.div>
         <h3 className="text-2xl font-bold text-gray-900 mb-3">No parts found</h3>
         <p className="text-gray-400 max-w-xs">

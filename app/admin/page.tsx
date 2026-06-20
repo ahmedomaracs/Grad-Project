@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Header } from '../../components/layout/Header';
-import { Sidebar } from '../../components/layout/Sidebar';
-import { AdminDashboardContent } from '../../components/sections/AdminDashboardContent';
+import { Header } from '@/components/layout/Header';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { AdminDashboardContent } from '@/components/sections/AdminDashboardContent';
 import { useAuthStore } from '../../store/authStore';
 import { useToastStore } from '../../store/toastStore';
 
@@ -31,7 +31,7 @@ export default function AdminDashboardPage() {
   if (!hydrated || !isAuthenticated || user?.role !== 'Partner') {
     return (
       <div className="flex flex-col min-h-screen bg-[#F9FAFB] items-center justify-center font-sans">
-        <div className="w-10 h-10 border-3 border-gray-200 border-t-[#FB2C36] rounded-full animate-spin" />
+        <div className="w-10 h-10 border-3 border-gray-200 border-t-[#E12F2F] rounded-full animate-spin" />
       </div>
     );
   }

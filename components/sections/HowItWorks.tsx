@@ -21,9 +21,9 @@ export function HowItWorks() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-6 tracking-tight"
+              className="font-display text-4xl lg:text-5xl text-ink mb-6"
             >
-              Intelligence in Motion
+              How It Works
             </motion.h2>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -45,7 +45,7 @@ export function HowItWorks() {
               whileInView={{ width: '100%' }}
               viewport={{ once: true }}
               transition={{ duration: 2, ease: "easeInOut" }}
-              className="h-full bg-gradient-to-r from-transparent via-[#FF2D2D] to-transparent"
+              className="h-full bg-gradient-to-r from-transparent via-brand to-transparent"
             />
           </div>
 
@@ -61,16 +61,18 @@ export function HowItWorks() {
                     transition={{ duration: 0.7, delay: index * 0.2, ease: [0.16, 1, 0.3, 1] }}
                     className="flex flex-row lg:flex-col items-stretch lg:items-start text-left group z-10 ml-8 lg:ml-0"
                   >
-                    {/* Circle Column with Border */}
+                    {/* Circle Column with Border directly on the wrapper of the icons */}
                     <div 
-                      className={`flex flex-col items-start w-16 lg:w-auto shrink-0 ${
-                        index !== steps.length - 1 ? 'border-l-2 border-[#FF2D2D]/20 lg:border-l-0' : 'border-l-2 border-transparent lg:border-l-0'
+                      className={`flex flex-col items-start w-16 lg:w-auto shrink-0 relative ${
+                        index !== steps.length - 1 
+                          ? 'border-l-2 border-brand pb-12 lg:pb-0 lg:border-l-0' 
+                          : 'pb-12 lg:pb-0'
                       }`}
                     >
                       <div className="relative w-16 h-16 lg:w-24 lg:h-24 -ml-[33px] lg:ml-0 mb-0 lg:mb-8 z-20 flex flex-col items-center justify-center shrink-0">
-                        <div className="absolute inset-0 bg-[#FF2D2D]/20 rounded-full blur-xl scale-50 group-hover:scale-100 transition-transform duration-500 z-0" />
+                        <div className="absolute inset-0 bg-brand/20 rounded-full blur-xl scale-50 group-hover:scale-100 transition-transform duration-500 z-0" />
                         <div className="absolute inset-2 bg-white rounded-full border border-gray-100 shadow-xl flex items-center justify-center z-20">
-                          <span className="text-xl lg:text-2xl font-black text-gray-900 group-hover:text-[#FF2D2D] transition-colors duration-300">
+                          <span className="font-display text-xl lg:text-2xl text-ink group-hover:text-brand transition-colors duration-300">
                             {step.num}
                           </span>
                         </div>
@@ -78,8 +80,8 @@ export function HowItWorks() {
                     </div>
 
                     {/* Text Content */}
-                    <div className="flex flex-col items-start lg:pl-0 pb-12 lg:pb-0 pt-2 lg:pt-0 max-w-[260px] lg:max-w-none z-10">
-                      <h3 className="text-xl lg:text-2xl font-bold text-gray-900 mb-2 tracking-tight">{step.title}</h3>
+                    <div className="flex flex-col items-start lg:pl-0 pb-12 lg:pb-0 pt-2 lg:pt-0 max-w-[260px] lg:max-w-none z-10 ml-4 lg:ml-0">
+                      <h3 className="text-xl lg:text-2xl font-bold text-ink mb-2 tracking-tight">{step.title}</h3>
                       <p className="text-gray-500 leading-relaxed text-sm lg:text-lg">
                         {step.desc}
                       </p>

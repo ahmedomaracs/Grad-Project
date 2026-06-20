@@ -4,13 +4,19 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Home, Wrench, ShoppingBag, Wallet, User } from 'lucide-react';
+import { Home, Car, Wrench, ShoppingBag, Wallet, User } from 'lucide-react';
 
 export function MobileNavigation() {
   const pathname = usePathname();
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  const handleNavigation = () => {
+    if (setIsOpen) setIsOpen(false);
+  };
 
   const navs = [
     { label: 'Overview', icon: Home, href: '/dashboard' },
+    { label: 'Garage', icon: Car, href: '/dashboard/my-garage' },
     { label: 'Mechanics', icon: Wrench, href: '/mechanics' },
     { label: 'Shop', icon: ShoppingBag, href: '/shop' },
     { label: 'Wallet', icon: Wallet, href: '/dashboard?tab=wallet' },
@@ -22,11 +28,11 @@ export function MobileNavigation() {
       {navs.map((nav) => {
         const isActive = pathname === nav.href || (nav.href.includes('tab=wallet') && pathname.includes('tab=wallet'));
         return (
-          <Link key={nav.label} href={nav.href} className="flex-1 flex flex-col items-center justify-center">
+          <Link key={nav.label} href={nav.href} onClick={handleNavigation} className="flex-1 flex flex-col items-center justify-center">
             <motion.div
               whileTap={{ scale: 0.90 }}
               className={`flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors ${
-                isActive ? 'text-[#FF2D2D]' : 'text-gray-400'
+                isActive ? 'text-[#E12F2F]' : 'text-gray-400'
               }`}
             >
               <nav.icon className="w-5 h-5 flex-shrink-0" />
@@ -34,7 +40,7 @@ export function MobileNavigation() {
               {isActive && (
                 <motion.div
                   layoutId="activeMobileDot"
-                  className="w-1 h-1 rounded-full bg-[#FF2D2D]"
+                  className="w-1 h-1 rounded-full bg-[#E12F2F]"
                   transition={{ type: 'spring', stiffness: 350, damping: 25 }}
                 />
               )}

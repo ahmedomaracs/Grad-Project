@@ -74,7 +74,7 @@ export default function MechanicsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Apex Mechanics</h1>
+            <h1 className="font-display text-4xl text-ink">Apex Mechanics</h1>
             <p className="text-sm text-gray-500 font-semibold mt-1">Book certified vetted diagnostics and repairs near you.</p>
           </div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-500/10 border border-green-500/20 text-green-500 text-xs font-bold uppercase">
@@ -107,7 +107,7 @@ export default function MechanicsPage() {
                 onClick={() => setActiveSpecialty(spec)}
                 className={`px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all ${
                   isActive
-                    ? 'bg-[#FF2D2D] text-white shadow-md shadow-[#FF2D2D]/35'
+                    ? 'bg-[#E12F2F] text-white shadow-md shadow-[#E12F2F]/35'
                     : 'bg-white border border-gray-250 text-gray-500 hover:text-gray-900 hover:border-gray-300'
                 }`}
               >
@@ -132,7 +132,7 @@ export default function MechanicsPage() {
                 {/* Favorites button */}
                 <button
                   onClick={() => toggleFavoriteMechanic(m.id)}
-                  className="absolute right-4 top-4 w-9 h-9 rounded-xl bg-white/80 border border-gray-250 flex items-center justify-center text-[#FF2D2D] z-10 hover:scale-105 transition-transform"
+                  className="absolute right-4 top-4 w-9 h-9 rounded-xl bg-white/80 border border-gray-250 flex items-center justify-center text-[#E12F2F] z-10 hover:scale-105 transition-transform"
                 >
                   <Heart className={`w-4.5 h-4.5 ${m.isFavorite ? 'fill-current' : 'text-gray-400'}`} />
                 </button>
@@ -168,7 +168,7 @@ export default function MechanicsPage() {
                       {m.rating} ({m.reviewsCount} reviews)
                     </span>
                     <span className="flex items-center gap-1">
-                      <DollarSign className="w-4.5 h-4.5 text-[#FF2D2D]" />
+                      <DollarSign className="w-4.5 h-4.5 text-[#E12F2F]" />
                       {m.price}
                     </span>
                   </div>
@@ -189,7 +189,7 @@ export default function MechanicsPage() {
                 <div className="flex gap-2">
                   <Button
                     onClick={() => setBookingMech(m)}
-                    className="flex-1 h-10 bg-[#FF2D2D] hover:bg-red-600 text-white rounded-xl text-xs font-bold shadow-md shadow-red-500/20 border-none"
+                    className="flex-1 h-10 bg-[#E12F2F] hover:bg-red-600 text-white rounded-xl text-xs font-bold shadow-md shadow-red-500/20 border-none"
                   >
                     Instant Book
                   </Button>
@@ -242,7 +242,7 @@ export default function MechanicsPage() {
                     value={bookingService}
                     onChange={(e) => setBookingService(e.target.value)}
                     disabled={isBooking}
-                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors cursor-pointer disabled:opacity-60"
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#E12F2F]/40 transition-colors cursor-pointer disabled:opacity-60"
                   >
                     <option value="Diagnostics Inspection">Diagnostics Session ($49.00)</option>
                     <option value="Complete Engine Cleanse">Complete Engine Cleanse ($99.00)</option>
@@ -260,7 +260,7 @@ export default function MechanicsPage() {
                       value={bookingDate}
                       onChange={(e) => setBookingDate(e.target.value)}
                       disabled={isBooking}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
+                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#E12F2F]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                   <div>
@@ -271,7 +271,7 @@ export default function MechanicsPage() {
                       value={bookingTime}
                       onChange={(e) => setBookingTime(e.target.value)}
                       disabled={isBooking}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
+                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#E12F2F]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                 </div>
@@ -281,7 +281,7 @@ export default function MechanicsPage() {
                     onClick={handleConfirmBooking}
                     disabled={!bookingDate || !bookingTime || isBooking}
                     fullWidth
-                    className="h-12 bg-[#FF2D2D] text-white hover:bg-red-600 font-bold"
+                    className="h-12 bg-[#E12F2F] text-white hover:bg-red-600 font-bold"
                   >
                     {isBooking ? 'Processing...' : 'Confirm Appointment'}
                   </Button>

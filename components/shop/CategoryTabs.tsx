@@ -32,16 +32,16 @@ export function CategoryTabs({ active, onChange }: CategoryTabsProps) {
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.95 }}
             className={cn(
-              'relative flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap',
+              'relative flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 whitespace-nowrap',
               isActive
-                ? 'text-white bg-[#FF2D2D] shadow-[0_0_20px_rgba(255,45,45,0.35)] border border-[#FF2D2D]/60'
-                : 'text-gray-600 bg-white border border-gray-200 hover:border-[#FF2D2D]/40 hover:text-[#FF2D2D]'
+                ? 'text-white bg-[#E12F2F] shadow-[0_4px_12px_rgba(230,36,36,0.3)] border border-[#E12F2F]'
+                : 'text-slate-700 bg-white border border-slate-200 hover:border-slate-300'
             )}
           >
             {isActive && (
               <motion.span
                 layoutId="activeCategoryBg"
-                className="absolute inset-0 rounded-xl bg-[#FF2D2D]"
+                className="absolute inset-0 rounded-xl bg-[#E12F2F]"
                 style={{ zIndex: -1 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               />
@@ -51,7 +51,7 @@ export function CategoryTabs({ active, onChange }: CategoryTabsProps) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 rounded-xl bg-[#FF2D2D]/5"
+                className="absolute inset-0 rounded-xl bg-[#E12F2F]/5"
               />
             )}
             {cat}

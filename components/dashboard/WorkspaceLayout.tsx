@@ -28,10 +28,10 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#FAFAFA] flex flex-col items-center justify-center font-sans text-gray-900">
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center font-sans text-slate-900">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-3 border-gray-200 border-t-[#FF2D2D] rounded-full animate-spin" />
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest animate-pulse">
+          <div className="w-10 h-10 border-3 border-slate-200 border-t-[#E62424] rounded-full animate-spin" />
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest animate-pulse">
             Rehydrating Session...
           </p>
         </div>
@@ -40,7 +40,7 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
   }
 
   return (
-    <div className="h-screen w-screen overflow-hidden flex bg-[#FAFAFA] font-sans text-gray-900 pb-16 md:pb-0">
+    <div className="h-screen w-screen overflow-hidden flex bg-[#F8FAFC] font-sans text-slate-900 pb-16 md:pb-0">
       {/* Desktop Sidebar */}
       {user?.role === 'Admin' ? <AdminSidebar /> : user?.role === 'Mechanic' ? <MechanicSidebar /> : user?.role === 'Merchant' ? <MerchantSidebar /> : <DashboardSidebar />}
 
@@ -61,13 +61,13 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
       {/* Dev Utility Settings */}
       <div className="fixed bottom-4 left-4 z-50 flex flex-col items-start gap-2">
         {showDev && (
-          <div className="bg-black/90 text-white p-3 rounded-lg text-xs font-mono shadow-xl flex flex-col gap-2">
+          <div className="bg-white/95 border border-slate-200 text-slate-800 p-3 rounded-lg text-xs font-mono shadow-xl flex flex-col gap-2 backdrop-blur-md">
             <button 
               onClick={() => {
                 logout();
                 window.location.href = '/signin';
               }}
-              className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded text-left transition-colors"
+              className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-left transition-colors"
             >
               Clear Current Session
             </button>
@@ -76,7 +76,7 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
                 localStorage.clear();
                 window.location.href = '/';
               }}
-              className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/40 text-red-200 rounded text-left transition-colors"
+              className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded text-left transition-colors"
             >
               Hard Factory Reset
             </button>
@@ -84,7 +84,7 @@ export function WorkspaceLayout({ children }: WorkspaceLayoutProps) {
         )}
         <button 
           onClick={() => setShowDev(!showDev)}
-          className="bg-black/80 hover:bg-black text-white px-3 py-1.5 rounded-full text-xs font-mono font-bold shadow-lg opacity-50 hover:opacity-100 transition-all"
+          className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-3 py-1.5 rounded-full text-xs font-mono font-bold shadow-md opacity-80 hover:opacity-100 transition-all"
         >
           Dev ⚙️
         </button>

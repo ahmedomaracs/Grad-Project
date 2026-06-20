@@ -6,17 +6,17 @@ import { Car, Wrench, ShoppingBag } from 'lucide-react';
 
 const features = [
   {
-    icon: <Car className="w-8 h-8 text-[#FF2D2D]" />,
+    icon: <Car className="w-8 h-8 text-[#E12F2F]" />,
     title: 'Car Management',
     description: 'Keep track of your vehicle history, maintenance schedules, and important documents in an intelligent digital garage.',
   },
   {
-    icon: <Wrench className="w-8 h-8 text-[#FF2D2D]" />,
+    icon: <Wrench className="w-8 h-8 text-[#E12F2F]" />,
     title: 'Expert Mechanics',
     description: 'Connect with certified, vetted mechanics for on-demand luxury service, repairs, and diagnostics at your location.',
   },
   {
-    icon: <ShoppingBag className="w-8 h-8 text-[#FF2D2D]" />,
+    icon: <ShoppingBag className="w-8 h-8 text-[#E12F2F]" />,
     title: 'Spare Parts Shop',
     description: 'Browse and purchase authentic, high-quality spare parts specifically guaranteed to fit your registered vehicles.',
   },
@@ -62,7 +62,7 @@ function PremiumFeatureCard({ feature, index }: { feature: any, index: number })
       />
 
       <div className="relative z-10">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FF2D2D]/10 to-transparent flex items-center justify-center mb-8 border border-[#FF2D2D]/20 shadow-inner group-hover:scale-110 transition-transform duration-500 ease-out">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#E12F2F]/10 to-transparent flex items-center justify-center mb-8 border border-[#E12F2F]/20 shadow-inner group-hover:scale-110 transition-transform duration-500 ease-out">
           <motion.div
             animate={{ y: isHovered ? [0, -5, 0] : 0 }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -71,7 +71,7 @@ function PremiumFeatureCard({ feature, index }: { feature: any, index: number })
           </motion.div>
         </div>
         
-        <h3 className="text-2xl font-bold text-gray-900 mb-4 tracking-tight group-hover:text-[#FF2D2D] transition-colors duration-300">
+        <h3 className="text-2xl font-bold text-gray-900 mb-4 tracking-tight group-hover:text-[#E12F2F] transition-colors duration-300">
           {feature.title}
         </h3>
         <p className="text-gray-600 leading-relaxed text-lg">
@@ -84,7 +84,7 @@ function PremiumFeatureCard({ feature, index }: { feature: any, index: number })
 
 export function Features() {
   return (
-    <section id="features" className="py-32 bg-[#FAFAFA] relative overflow-hidden">
+    <section id="features" className="py-32 bg-[#F5F5F5] relative overflow-hidden">
       {/* Subtle background element */}
       <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-gray-100 via-transparent to-transparent opacity-60 pointer-events-none" />
 
@@ -94,9 +94,9 @@ export function Features() {
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF2D2D]/10 text-[#FF2D2D] text-sm font-semibold tracking-wide uppercase mb-6"
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E12F2F]/10 text-[#E12F2F] text-sm font-semibold tracking-wide uppercase mb-6"
           >
-            <span className="w-2 h-2 rounded-full bg-[#FF2D2D] animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-[#E12F2F] animate-pulse" />
             Platform Capabilities
           </motion.div>
           <motion.h2 

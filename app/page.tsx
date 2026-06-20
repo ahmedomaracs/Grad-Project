@@ -2,7 +2,8 @@ import React from 'react';
 import { Navbar } from '../components/layout/Navbar';
 import { Hero } from '../components/sections/Hero';
 import { Statistics } from '../components/sections/Statistics';
-import { Features } from '../components/sections/Features';
+import { FeaturesSection } from '../components/sections/FeaturesSection';
+import { Services } from '../components/sections/Services';
 import { HowItWorks } from '../components/sections/HowItWorks';
 import { Testimonials } from '../components/sections/Testimonials';
 import { Cta } from '../components/sections/Cta';
@@ -12,13 +13,14 @@ import { SmoothScroll } from '../components/SmoothScroll';
 export default function LandingPage() {
   return (
     <SmoothScroll>
-      <div className="min-h-screen bg-[#FAFAFA] font-sans selection:bg-[#FF2D2D]/20 selection:text-[#FF2D2D] overflow-x-hidden text-[#111111]">
+      <div className="min-h-screen bg-white font-sans selection:bg-brand/20 selection:text-brand overflow-x-hidden text-ink relative overflow-hidden before:absolute before:inset-0 before:bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] before:[background-size:24px_24px] before:opacity-30 before:pointer-events-none">
         <Navbar />
-        
+
         <main>
           <Hero />
           <Statistics />
-          <Features />
+          <FeaturesSection />
+          <Services />
           <HowItWorks />
           <Testimonials />
           <Cta />
@@ -29,3 +31,5 @@ export default function LandingPage() {
     </SmoothScroll>
   );
 }
+
+

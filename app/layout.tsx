@@ -1,6 +1,20 @@
 import type { Metadata } from 'next';
+import { Inter, Anton } from 'next/font/google';
 import './globals.css';
 import { ClientProviders } from '../components/ClientProviders';
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const anton = Anton({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-anton',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: {
@@ -23,8 +37,12 @@ export const metadata: Metadata = {
     title: 'Automate — Premium Automotive SaaS',
     description: 'The all-in-one automotive service platform for discerning drivers.',
   },
-  viewport: 'width=device-width, initial-scale=1',
-  themeColor: '#FF2D2D',
+};
+
+export const viewport = {
+  themeColor: '#E62424',
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -33,10 +51,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${anton.variable}`} suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* Inline script to prevent dark-mode flash */}
         <script
           dangerouslySetInnerHTML={{
@@ -44,7 +60,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased min-h-screen bg-[#FAFAFA] text-gray-900">
+      <body className="antialiased bg-white text-ink font-sans">
         <ClientProviders>
           {children}
         </ClientProviders>

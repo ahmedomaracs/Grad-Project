@@ -55,7 +55,7 @@ function MerchantDashboardContent() {
       <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Seller Dashboard</h1>
+          <h1 className="text-3xl font-display text-gray-900">Seller Dashboard</h1>
           <p className="text-gray-500 font-medium mt-1">Manage your inventory, orders, and business performance</p>
         </div>
       </div>
@@ -88,7 +88,7 @@ function MerchantDashboardContent() {
             <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-150 shadow-sm overflow-hidden">
               <div className="p-6 border-b border-gray-150 flex justify-between items-center">
                 <h3 className="text-lg font-bold text-gray-900">Recent Orders</h3>
-                <a href="#" className="text-sm font-bold text-[#FF2D2D] hover:underline">View All</a>
+                <a href="#" className="text-sm font-bold text-[#E12F2F] hover:underline">View All</a>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
@@ -120,7 +120,7 @@ function MerchantDashboardContent() {
                         <td className="p-4 text-sm font-bold text-gray-900">${order.totalPrice.toFixed(2)}</td>
                         <td className="p-4">
                           <select
-                            className="text-sm bg-gray-100 border-none rounded-xl font-medium focus:ring-2 focus:ring-[#FF2D2D]"
+                            className="text-sm bg-gray-100 border-none rounded-xl font-medium focus:ring-2 focus:ring-[#E12F2F]"
                             value={order.status}
                             onChange={(e) => handleStatusChange(order.id, e.target.value)}
                           >
@@ -150,7 +150,7 @@ function MerchantDashboardContent() {
                   </div>
                   Inventory Alerts
                 </h3>
-                <button className="px-4 py-2 bg-[#FF2D2D] hover:bg-red-600 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-red-500/25">
+                <button className="px-4 py-2 bg-[#E12F2F] hover:bg-red-600 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-red-500/25">
                   Restock
                 </button>
               </div>
@@ -204,7 +204,7 @@ export default function MerchantDashboardPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-10 h-10 border-3 border-gray-200 border-t-[#FF2D2D] rounded-full animate-spin" />
+        <div className="w-10 h-10 border-3 border-gray-200 border-t-[#E12F2F] rounded-full animate-spin" />
       </div>
     }>
       <MerchantDashboardContent />

@@ -56,7 +56,7 @@ export function InventoryTab({ merchantId }: { merchantId: string }) {
         </div>
         <button
           onClick={() => setIsAdding(!isAdding)}
-          className="px-4 py-2 bg-[#FF2D2D] text-white rounded-xl font-bold flex items-center gap-2 hover:bg-red-600 transition-colors shadow-lg shadow-red-500/25"
+          className="px-4 py-2 bg-[#E12F2F] text-white rounded-xl font-bold flex items-center gap-2 hover:bg-red-600 transition-colors shadow-lg shadow-red-500/25"
         >
           {isAdding ? 'Cancel' : <><Plus className="w-4 h-4" /> Add Product</>}
         </button>
@@ -66,7 +66,7 @@ export function InventoryTab({ merchantId }: { merchantId: string }) {
         <div className="bg-white rounded-3xl border border-gray-150 p-6 shadow-sm">
           <div className="mb-6 flex items-center gap-4 border-b border-gray-100 pb-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className={`flex items-center gap-2 ${step === i ? 'text-[#FF2D2D]' : 'text-gray-400'}`}>
+              <div key={i} className={`flex items-center gap-2 ${step === i ? 'text-[#E12F2F]' : 'text-gray-400'}`}>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${step === i ? 'bg-red-50' : 'bg-gray-50'}`}>
                   {i}
                 </div>
@@ -158,7 +158,7 @@ export function InventoryTab({ merchantId }: { merchantId: string }) {
                 </div>
                 <div className="flex items-center mt-6">
                   <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" className="w-5 h-5 rounded text-[#FF2D2D] focus:ring-[#FF2D2D]" checked={formData.workshopDeliveryEnabled} onChange={e => setFormData({ ...formData, workshopDeliveryEnabled: e.target.checked })} />
+                    <input type="checkbox" className="w-5 h-5 rounded text-[#E12F2F] focus:ring-[#E12F2F]" checked={formData.workshopDeliveryEnabled} onChange={e => setFormData({ ...formData, workshopDeliveryEnabled: e.target.checked })} />
                     <span className="text-sm font-bold text-gray-700">Allow direct workshop delivery</span>
                   </label>
                 </div>
@@ -184,7 +184,7 @@ export function InventoryTab({ merchantId }: { merchantId: string }) {
             ) : (
               <button
                 onClick={handleSubmit}
-                className="px-6 py-2 bg-[#FF2D2D] text-white rounded-xl font-bold flex items-center gap-2 hover:bg-red-600 shadow-lg shadow-red-500/25"
+                className="px-6 py-2 bg-[#E12F2F] text-white rounded-xl font-bold flex items-center gap-2 hover:bg-red-600 shadow-lg shadow-red-500/25"
               >
                 <Save className="w-4 h-4" /> Save Product
               </button>
@@ -218,7 +218,7 @@ export function InventoryTab({ merchantId }: { merchantId: string }) {
                       <span className="text-sm font-bold text-gray-500">$</span>
                       <input
                         type="number"
-                        className="w-20 bg-transparent border-b border-gray-200 focus:border-[#FF2D2D] outline-none text-sm font-bold"
+                        className="w-20 bg-transparent border-b border-gray-200 focus:border-[#E12F2F] outline-none text-sm font-bold"
                         value={product.basePrice}
                         onChange={(e) => handleInlineUpdate(product.id, 'basePrice', parseFloat(e.target.value))}
                       />
@@ -228,7 +228,7 @@ export function InventoryTab({ merchantId }: { merchantId: string }) {
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
-                        className="w-16 bg-transparent border-b border-gray-200 focus:border-[#FF2D2D] outline-none text-sm font-bold"
+                        className="w-16 bg-transparent border-b border-gray-200 focus:border-[#E12F2F] outline-none text-sm font-bold"
                         value={product.stockQuantity}
                         onChange={(e) => handleInlineUpdate(product.id, 'stockQuantity', parseInt(e.target.value))}
                       />

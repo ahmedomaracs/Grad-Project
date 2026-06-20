@@ -20,7 +20,7 @@ function MechanicDashboardContent() {
   if (isLoading || !user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
-        <div className="w-10 h-10 border-3 border-gray-200 border-t-[#FF2D2D] rounded-full animate-spin" />
+        <div className="w-10 h-10 border-3 border-gray-200 border-t-[#E12F2F] rounded-full animate-spin" />
       </div>
     );
   }
@@ -54,7 +54,7 @@ function MechanicDashboardContent() {
       case 'Checked-In':
         return <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-md text-[10px] font-bold">Checked-In</span>;
       case 'In-Progress':
-        return <span className="px-2 py-1 bg-[#FF2D2D]/10 text-[#FF2D2D] rounded-md text-[10px] font-bold">In-Progress</span>;
+        return <span className="px-2 py-1 bg-[#E12F2F]/10 text-[#E12F2F] rounded-md text-[10px] font-bold">In-Progress</span>;
       case 'Ready for Pickup':
         return <span className="px-2 py-1 bg-green-100 text-green-700 rounded-md text-[10px] font-bold">Ready for Pickup</span>;
       default:
@@ -74,7 +74,7 @@ function MechanicDashboardContent() {
     <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
       {/* Header banner */}
       <div>
-        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+        <h1 className="text-3xl font-display text-gray-900">
           Welcome to the bay, {user.name.split(' ')[0]}!
         </h1>
         <p className="text-sm text-gray-500 font-semibold mt-1">
@@ -104,8 +104,8 @@ function MechanicDashboardContent() {
         </div>
         <div className="bg-white rounded-2xl border border-gray-150 p-5 shadow-sm">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 rounded-lg bg-[#FF2D2D]/10 flex items-center justify-center">
-              <DollarSign className="w-4 h-4 text-[#FF2D2D]" />
+            <div className="w-8 h-8 rounded-lg bg-[#E12F2F]/10 flex items-center justify-center">
+              <DollarSign className="w-4 h-4 text-[#E12F2F]" />
             </div>
             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Earnings</span>
           </div>
@@ -125,7 +125,7 @@ function MechanicDashboardContent() {
       {/* Bookings Preview */}
       <div className="bg-white rounded-3xl border border-gray-150 p-6">
         <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-          <Clock className="w-5 h-5 text-[#FF2D2D]" />
+          <Clock className="w-5 h-5 text-[#E12F2F]" />
           Today's Schedule
         </h3>
         <div className="space-y-4">
@@ -147,7 +147,7 @@ function MechanicDashboardContent() {
               <div className="flex items-center self-start sm:self-center">
                 <Button 
                   variant={b.status === 'Ready for Pickup' ? 'secondary' : 'default'} 
-                  className={`h-8 px-4 text-xs font-bold ${b.status !== 'Ready for Pickup' ? 'bg-[#FF2D2D] hover:bg-red-600 text-white border-none' : ''}`}
+                  className={`h-8 px-4 text-xs font-bold ${b.status !== 'Ready for Pickup' ? 'bg-[#E12F2F] hover:bg-red-600 text-white border-none' : ''}`}
                   onClick={() => handleStatusChange(b.id, b.status)}
                   disabled={b.status === 'Ready for Pickup'}
                 >
@@ -164,13 +164,13 @@ function MechanicDashboardContent() {
   const renderBookings = () => (
     <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       <div>
-        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Active Bookings</h1>
+        <h1 className="text-3xl font-display text-gray-900">Active Bookings</h1>
         <p className="text-sm text-gray-500 font-semibold mt-1">Manage all your upcoming and active jobs.</p>
       </div>
       <div className="bg-white rounded-3xl border border-gray-150 p-6">
         <div className="space-y-4">
           {mechanicBookings.map((b) => (
-            <div key={b.id} className="flex flex-col sm:flex-row justify-between p-5 rounded-2xl bg-white border border-gray-200 shadow-sm gap-4 hover:border-[#FF2D2D]/30 transition-colors">
+            <div key={b.id} className="flex flex-col sm:flex-row justify-between p-5 rounded-2xl bg-white border border-gray-200 shadow-sm gap-4 hover:border-[#E12F2F]/30 transition-colors">
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <h4 className="font-extrabold text-gray-900 text-base">{b.customerName}</h4>
@@ -191,7 +191,7 @@ function MechanicDashboardContent() {
               <div className="flex items-center self-start sm:self-center">
                 <Button 
                   variant={b.status === 'Ready for Pickup' ? 'secondary' : 'default'} 
-                  className={`h-10 px-5 text-xs font-bold ${b.status !== 'Ready for Pickup' ? 'bg-[#FF2D2D] hover:bg-red-600 text-white border-none shadow-md shadow-red-500/20' : ''}`}
+                  className={`h-10 px-5 text-xs font-bold ${b.status !== 'Ready for Pickup' ? 'bg-[#E12F2F] hover:bg-red-600 text-white border-none shadow-md shadow-red-500/20' : ''}`}
                   onClick={() => handleStatusChange(b.id, b.status)}
                   disabled={b.status === 'Ready for Pickup'}
                 >
@@ -208,7 +208,7 @@ function MechanicDashboardContent() {
   const renderServices = () => (
     <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       <div>
-        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Services & Leads</h1>
+        <h1 className="text-3xl font-display text-gray-900">Services & Leads</h1>
         <p className="text-sm text-gray-500 font-semibold mt-1">Configure your offered services and bid on local customer leads.</p>
       </div>
       <div className="py-16 text-center border-2 border-dashed border-gray-200 rounded-3xl flex flex-col items-center justify-center gap-3">
@@ -222,7 +222,7 @@ function MechanicDashboardContent() {
   const renderEarnings = () => (
     <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       <div>
-        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Earnings & Payouts</h1>
+        <h1 className="text-3xl font-display text-gray-900">Earnings & Payouts</h1>
         <p className="text-sm text-gray-500 font-semibold mt-1">Track your workshop revenue and pending transfers.</p>
       </div>
       <div className="py-16 text-center border-2 border-dashed border-gray-200 rounded-3xl flex flex-col items-center justify-center gap-3">
@@ -249,7 +249,7 @@ export default function MechanicDashboardPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-10 h-10 border-3 border-gray-200 border-t-[#FF2D2D] rounded-full animate-spin" />
+        <div className="w-10 h-10 border-3 border-gray-200 border-t-[#E12F2F] rounded-full animate-spin" />
       </div>
     }>
       <MechanicDashboardContent />

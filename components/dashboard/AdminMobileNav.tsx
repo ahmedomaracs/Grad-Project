@@ -27,14 +27,14 @@ export function AdminMobileNav() {
             <div className="flex flex-col items-center justify-center h-full gap-1 cursor-pointer">
               <div
                 className={`p-1.5 rounded-xl transition-all duration-300 ${
-                  isActive ? 'bg-[#FF2D2D]/20 text-[#FF2D2D] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]' : 'text-gray-500'
+                  isActive ? 'bg-[#E12F2F]/20 text-[#E12F2F] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]' : 'text-gray-500'
                 }`}
               >
                 <item.icon className={`w-5 h-5 ${isActive ? 'scale-110' : ''}`} />
               </div>
               <span
                 className={`text-[9px] font-bold transition-colors ${
-                  isActive ? 'text-[#FF2D2D]' : 'text-gray-500'
+                  isActive ? 'text-[#E12F2F]' : 'text-gray-500'
                 }`}
               >
                 {item.name}

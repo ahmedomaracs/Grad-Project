@@ -28,8 +28,8 @@ export function MechanicMobileNav() {
               href={link.href}
               className="flex flex-col items-center justify-center w-full h-full space-y-1"
             >
-              <link.icon className={`w-5 h-5 ${isActive ? 'text-[#FF2D2D]' : 'text-gray-400'}`} />
-              <span className={`text-[10px] font-bold ${isActive ? 'text-[#FF2D2D]' : 'text-gray-400'}`}>
+              <link.icon className={`w-5 h-5 ${isActive ? 'text-[#E12F2F]' : 'text-gray-400'}`} />
+              <span className={`text-[10px] font-bold ${isActive ? 'text-[#E12F2F]' : 'text-gray-400'}`}>
                 {link.label}
               </span>
             </Link>

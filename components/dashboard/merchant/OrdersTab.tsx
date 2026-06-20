@@ -49,11 +49,11 @@ export function OrdersTab({ merchantId }: { merchantId: string }) {
               </div>
 
               <div className="flex flex-col items-end gap-3 w-full md:w-auto">
-                <p className="text-xl font-black text-[#FF2D2D]">${order.totalPrice.toFixed(2)}</p>
+                <p className="text-xl font-black text-[#E12F2F]">${order.totalPrice.toFixed(2)}</p>
                 
                 <div className="flex gap-2 w-full md:w-auto">
                   <select
-                    className="w-full md:w-auto text-sm bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 font-bold focus:ring-2 focus:ring-[#FF2D2D] outline-none"
+                    className="w-full md:w-auto text-sm bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 font-bold focus:ring-2 focus:ring-[#E12F2F] outline-none"
                     value={order.status}
                     onChange={(e) => advanceOrderStatus(order.id, e.target.value as any, order.clientUserId, order.productLabel)}
                   >

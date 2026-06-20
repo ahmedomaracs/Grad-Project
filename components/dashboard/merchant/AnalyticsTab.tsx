@@ -68,7 +68,7 @@ export function AnalyticsTab({ merchantId }: { merchantId: string }) {
             {salesData.map((d, i) => (
               <div key={i} className="flex flex-col items-center gap-2 flex-1 group">
                 <div 
-                  className="w-full bg-orange-100 rounded-t-xl group-hover:bg-[#FF2D2D] transition-colors relative"
+                  className="w-full bg-orange-100 rounded-t-xl group-hover:bg-[#E12F2F] transition-colors relative"
                   style={{ height: `${(d.val / 120) * 100}%` }}
                 >
                   <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-bold py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">
@@ -95,7 +95,7 @@ export function AnalyticsTab({ merchantId }: { merchantId: string }) {
                     <p className="text-xs text-gray-500">{p.category}</p>
                   </div>
                 </div>
-                <p className="text-sm font-black text-[#FF2D2D]">${p.basePrice.toFixed(2)}</p>
+                <p className="text-sm font-black text-[#E12F2F]">${p.basePrice.toFixed(2)}</p>
               </div>
             ))}
             {products.length === 0 && (

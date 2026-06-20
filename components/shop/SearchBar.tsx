@@ -25,7 +25,7 @@ export function SearchBar({ value, onChange, onFilterOpen, activeFiltersCount = 
             initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.97 }}
-            className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-[#FF2D2D]/20 via-[#FF2D2D]/10 to-transparent blur-md pointer-events-none"
+            className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-[#E12F2F]/20 via-[#E12F2F]/10 to-transparent blur-md pointer-events-none"
           />
         )}
       </AnimatePresence>
@@ -36,7 +36,7 @@ export function SearchBar({ value, onChange, onFilterOpen, activeFiltersCount = 
         className="relative flex items-center gap-3 bg-white border border-gray-200 rounded-2xl px-5 h-14 transition-colors duration-200"
         style={{ borderColor: focused ? 'rgba(255,45,45,0.4)' : undefined }}
       >
-        <motion.div animate={{ color: focused ? '#FF2D2D' : '#9CA3AF' }} transition={{ duration: 0.2 }}>
+        <motion.div animate={{ color: focused ? '#E12F2F' : '#9CA3AF' }} transition={{ duration: 0.2 }}>
           <Search className="w-5 h-5 flex-shrink-0" />
         </motion.div>
 
@@ -77,7 +77,7 @@ export function SearchBar({ value, onChange, onFilterOpen, activeFiltersCount = 
           className={cn(
             'relative flex items-center gap-2 px-4 h-9 rounded-xl text-sm font-semibold flex-shrink-0 transition-all duration-200',
             activeFiltersCount > 0
-              ? 'bg-[#FF2D2D] text-white shadow-[0_0_16px_rgba(255,45,45,0.3)]'
+              ? 'bg-[#E12F2F] text-white shadow-[0_0_16px_rgba(255,45,45,0.3)]'
               : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
           )}
         >
@@ -87,7 +87,7 @@ export function SearchBar({ value, onChange, onFilterOpen, activeFiltersCount = 
             <motion.span
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="flex items-center justify-center w-5 h-5 rounded-full bg-white text-[#FF2D2D] text-xs font-bold"
+              className="flex items-center justify-center w-5 h-5 rounded-full bg-white text-[#E12F2F] text-xs font-bold"
             >
               {activeFiltersCount}
             </motion.span>

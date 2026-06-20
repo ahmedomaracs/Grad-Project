@@ -124,7 +124,7 @@ export default function ProfilePage() {
       <div className="space-y-8 select-none max-w-5xl mx-auto">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Profile & Preferences</h1>
+          <h1 className="text-3xl font-display text-gray-900">Profile & Preferences</h1>
           <p className="text-sm text-gray-500 font-semibold mt-1">Configure profile coordinates, dynamic passcodes and registered cars.</p>
         </div>
 
@@ -134,7 +134,7 @@ export default function ProfilePage() {
             {/* Coordinates Account settings */}
             <div className="bg-white rounded-3xl border border-gray-150 p-6">
               <h3 className="text-base font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <User className="w-4.5 h-4.5 text-[#FF2D2D]" />
+                <User className="w-4.5 h-4.5 text-[#E12F2F]" />
                 Account Coordinates
               </h3>
               <form onSubmit={handleUpdateProfile} className="space-y-4">
@@ -146,7 +146,7 @@ export default function ProfilePage() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       disabled={isUpdating}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
+                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#E12F2F]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                   <div className="space-y-1">
@@ -156,7 +156,7 @@ export default function ProfilePage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       disabled={isUpdating}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
+                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#E12F2F]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                 </div>
@@ -169,7 +169,7 @@ export default function ProfilePage() {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       disabled={isUpdating}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
+                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#E12F2F]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                   <div className="space-y-1">
@@ -179,7 +179,7 @@ export default function ProfilePage() {
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       disabled={isUpdating}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
+                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#E12F2F]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                 </div>
@@ -191,7 +191,7 @@ export default function ProfilePage() {
                       type="checkbox"
                       checked={notify}
                       onChange={(e) => setNotify(e.target.checked)}
-                      className="w-4.5 h-4.5 rounded border-gray-300 focus:ring-red-400 accent-[#FF2D2D] cursor-pointer"
+                      className="w-4.5 h-4.5 rounded border-gray-300 focus:ring-red-400 accent-[#E12F2F] cursor-pointer"
                     />
                     <label htmlFor="notifyToggle" className="ml-2.5 text-sm font-semibold text-gray-500 cursor-pointer">
                       Enable real-time dashboard notifications
@@ -201,7 +201,7 @@ export default function ProfilePage() {
                   <Button
                     type="submit"
                     disabled={isUpdating}
-                    className="h-10 bg-[#FF2D2D] hover:bg-red-600 text-white rounded-xl text-xs font-bold border-none px-6"
+                    className="h-10 bg-[#E12F2F] hover:bg-red-600 text-white rounded-xl text-xs font-bold border-none px-6"
                   >
                     {isUpdating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : success ? <Check className="w-4 h-4 animate-bounce" /> : 'Save Changes'}
                   </Button>
@@ -212,7 +212,7 @@ export default function ProfilePage() {
             {/* Passcodes security settings */}
             <div className="bg-white rounded-3xl border border-gray-150 p-6">
               <h3 className="text-base font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <Lock className="w-4.5 h-4.5 text-[#FF2D2D]" />
+                <Lock className="w-4.5 h-4.5 text-[#E12F2F]" />
                 Security passcode reset
               </h3>
               <form onSubmit={handleChangePassword} className="space-y-4">
@@ -225,7 +225,7 @@ export default function ProfilePage() {
                     value={oldPassword}
                     onChange={(e) => setOldPassword(e.target.value)}
                     disabled={isChangingPwd}
-                    className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
+                    className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#E12F2F]/40 transition-colors disabled:opacity-60"
                   />
                 </div>
 
@@ -239,7 +239,7 @@ export default function ProfilePage() {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       disabled={isChangingPwd}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
+                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#E12F2F]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                   <div className="space-y-1">
@@ -251,7 +251,7 @@ export default function ProfilePage() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       disabled={isChangingPwd}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
+                      className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#E12F2F]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                 </div>
@@ -282,14 +282,14 @@ export default function ProfilePage() {
             <div className="bg-white rounded-3xl border border-gray-150 p-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                  <Car className="w-4.5 h-4.5 text-[#FF2D2D]" />
+                  <Car className="w-4.5 h-4.5 text-[#E12F2F]" />
                   Garage Manager
                 </h3>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowAddModal(true)}
-                  className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-[#FF2D2D]/10 hover:text-[#FF2D2D] transition-colors border border-gray-200"
+                  className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-[#E12F2F]/10 hover:text-[#E12F2F] transition-colors border border-gray-200"
                 >
                   <Plus className="w-4.5 h-4.5" />
                 </motion.button>
@@ -359,7 +359,7 @@ export default function ProfilePage() {
                     value={vBrand}
                     onChange={(e) => setVBrand(e.target.value)}
                     disabled={isAddingVehicle}
-                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#E12F2F]/40 transition-colors disabled:opacity-60"
                   />
                 </div>
                 <div>
@@ -371,7 +371,7 @@ export default function ProfilePage() {
                     value={vModel}
                     onChange={(e) => setVModel(e.target.value)}
                     disabled={isAddingVehicle}
-                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#E12F2F]/40 transition-colors disabled:opacity-60"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -384,7 +384,7 @@ export default function ProfilePage() {
                       value={vYear}
                       onChange={(e) => setVYear(e.target.value)}
                       disabled={isAddingVehicle}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
+                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#E12F2F]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                   <div>
@@ -396,12 +396,12 @@ export default function ProfilePage() {
                       value={vMileage}
                       onChange={(e) => setVMileage(e.target.value)}
                       disabled={isAddingVehicle}
-                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors disabled:opacity-60"
+                      className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#E12F2F]/40 transition-colors disabled:opacity-60"
                     />
                   </div>
                 </div>
                 <div className="pt-4">
-                  <Button type="submit" fullWidth disabled={isAddingVehicle} className="h-12 bg-[#FF2D2D] text-white hover:bg-red-600 font-bold">
+                  <Button type="submit" fullWidth disabled={isAddingVehicle} className="h-12 bg-[#E12F2F] text-white hover:bg-red-600 font-bold">
                     {isAddingVehicle ? (
                       <div className="flex items-center gap-2">
                         <RefreshCw className="w-4 h-4 animate-spin" />

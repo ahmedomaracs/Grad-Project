@@ -35,7 +35,7 @@ export function CartButton({ className, variant = 'navbar' }: CartButtonProps) {
         whileTap={{ scale: 0.97 }}
         className={cn(
           'relative flex items-center gap-3 px-7 h-14 rounded-2xl text-base font-semibold text-white',
-          'bg-[#FF2D2D] border border-[#FF2D2D]/50',
+          'bg-[#E12F2F] border border-[#E12F2F]/50',
           'shadow-[0_0_30px_rgba(255,45,45,0.4)] hover:shadow-[0_0_50px_rgba(255,45,45,0.6)]',
           'transition-all duration-300 group overflow-hidden',
           className
@@ -51,7 +51,7 @@ export function CartButton({ className, variant = 'navbar' }: CartButtonProps) {
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.5, opacity: 0 }}
-              className="flex items-center justify-center w-6 h-6 rounded-full bg-white text-[#FF2D2D] text-xs font-bold"
+              className="flex items-center justify-center w-6 h-6 rounded-full bg-white text-[#E12F2F] text-xs font-bold"
             >
               {count}
             </motion.span>
@@ -68,10 +68,7 @@ export function CartButton({ className, variant = 'navbar' }: CartButtonProps) {
       whileTap={{ scale: 0.95 }}
       animate={bumped ? { scale: [1, 1.2, 1] } : {}}
       className={cn(
-        'relative flex items-center justify-center w-10 h-10 rounded-xl',
-        'bg-[#FF2D2D]/10 text-[#FF2D2D] hover:bg-[#FF2D2D] hover:text-white',
-        'transition-all duration-200 border border-[#FF2D2D]/20 hover:border-[#FF2D2D]',
-        'hover:shadow-[0_0_20px_rgba(255,45,45,0.4)]',
+        'w-9 h-9 flex items-center justify-center bg-slate-50/80 border border-slate-200/60 rounded-xl text-slate-700 hover:text-slate-950 hover:bg-slate-100/80 transition-all cursor-pointer relative',
         className
       )}
     >
@@ -83,7 +80,7 @@ export function CartButton({ className, variant = 'navbar' }: CartButtonProps) {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0 }}
-            className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#FF2D2D] text-white text-[10px] font-bold shadow-[0_0_8px_rgba(255,45,45,0.6)]"
+            className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-[#E62424] text-white text-[10px] font-bold flex items-center justify-center rounded-full px-1 border-2 border-white"
           >
             {count > 99 ? '99+' : count}
           </motion.span>

@@ -144,7 +144,7 @@ interface AuthStore {
   mechanicBookings: MechanicBooking[];
   merchantOrders: MerchantOrder[];
   inventoryAlerts: InventoryAlert[];
-  login: (email: string, role: UserRole, name?: string, isNewUser?: boolean) => void;
+  login: (email: string, name?: string, isNewUser?: boolean) => void;
   logout: () => void;
   updateProfile: (profile: Partial<UserProfile>) => void;
   addVehicle: (vehicle: Omit<Vehicle, 'id'>) => void;
@@ -410,17 +410,31 @@ export const useAuthStore = create<AuthStore>()(
       merchantOrders: SAMPLE_MERCHANT_ORDERS,
       inventoryAlerts: SAMPLE_INVENTORY_ALERTS,
 
-      login: (email: string, role: UserRole, name?: string, isNewUser?: boolean) => {
+      login: (email: string, name?: string, isNewUser?: boolean) => {
+        let resolvedRole: UserRole = 'Client';
+        const lowerEmail = email.toLowerCase();
+        if (lowerEmail.includes('mechanic') || lowerEmail.startsWith('m1@') || lowerEmail.startsWith('m2@') || lowerEmail.startsWith('m3@') || lowerEmail.startsWith('m4@')) {
+          resolvedRole = 'Mechanic';
+        } else if (lowerEmail.includes('merchant') || lowerEmail.includes('parts')) {
+          resolvedRole = 'Merchant';
+        } else if (lowerEmail.includes('admin')) {
+          resolvedRole = 'Admin';
+        }
+
+        if (isNewUser) {
+          resolvedRole = 'Client';
+        }
+
         const id = isNewUser ? 'usr_' + Math.random().toString(36).substr(2, 9) : 'usr_default';
         set((state) => {
           const updates: any = {
             isAuthenticated: true,
             user: {
               id,
-              name: name || (role === 'Client' ? 'Ahmed Al-Masri' : role === 'Mechanic' ? 'Alex Rivera' : 'Turbo Parts Inc.'),
+              name: name || (resolvedRole === 'Client' ? 'Ahmed Al-Masri' : resolvedRole === 'Mechanic' ? 'Alex Rivera' : 'Turbo Parts Inc.'),
               email,
               phone: '+962 7 9876 5432',
-              role,
+              role: resolvedRole,
               avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
               address: 'Amman, Jordan',
               notificationsEnabled: true,

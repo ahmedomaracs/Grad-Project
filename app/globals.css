@@ -1,25 +1,123 @@
 @import "tailwindcss";
 
 :root {
-  --background: #FAFAFA;
-  --foreground: #111111;
+  --background: #FFFFFF;
+  --foreground: #0F0F0F;
+  /* CarHive brand palette */
+  --brand-red: 230 36 36;      /* #E62424 */
+  --brand-ink: 15 15 15;       /* #0F0F0F */
+  --text-main: 15 15 15;
+  --text-muted: 131 131 131;   /* #838383 */
   color-scheme: light;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: Arial, Helvetica, sans-serif;
+
+  /* CarHive design tokens */
+  --color-ink: #0F0F0F;
+  --color-ink-soft: #1A1A1A;
+  --color-brand: #E62424;
+  --color-brand-dark: #C41F1F;
+  --color-muted: #838383;
+  --color-muted-light: #C2C2C2;
+  --color-surface: #F5F5F5;
+
+  --font-sans: var(--font-inter), Arial, Helvetica, sans-serif;
+  --font-display: var(--font-anton), "Arial Narrow", Impact, sans-serif;
   --font-mono: monospace;
 }
 
 /* Force light mode — never respect prefers-color-scheme: dark */
-html.light {
+html {
   color-scheme: light;
+  background-color: #FFFFFF;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #FFFFFF;
+  color: #0F0F0F;
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+/* CarHive display headings */
+.font-display {
+  font-family: var(--font-anton), "Arial Narrow", Impact, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* Custom Glossy White SaaS Utility Classes */
+@utility theme-card {
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border-radius: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@utility theme-glass-card {
+  background-color: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 32px 0 rgba(148, 163, 184, 0.08);
+  border-radius: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@utility theme-glass-input {
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid #CBD5E1;
+  color: #0F172A;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &::placeholder {
+    color: #94A3B8;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #E62424;
+    box-shadow: 0 0 0 4px rgba(230, 36, 36, 0.1);
+  }
+}
+
+@utility theme-accent-glow {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    border-color: rgba(230, 36, 36, 0.2);
+    box-shadow: 0 20px 40px rgba(230, 36, 36, 0.08);
+    transform: scale(1.01);
+  }
+}
+
+/* Shimmer sweep used on primary buttons / cart actions */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@utility animate-shimmer {
+  animation: shimmer 1.2s ease-in-out;
+}
+
+/* CarHive section helpers */
+@utility text-stroke-brand {
+  -webkit-text-stroke: 1.5px #E62424;
+  color: transparent;
+}
+
+.glossy-card {
+  @apply bg-white/90 backdrop-blur-md border border-slate-200/80 shadow-[0_10px_40px_rgba(0,0,0,0.03)] rounded-3xl;
+}
+
+.input-brand-focus {
+  @apply focus:outline-none focus:border-[#E62424] focus:ring-4 focus:ring-red-500/10 transition-all;
 }

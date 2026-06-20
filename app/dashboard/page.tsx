@@ -93,8 +93,20 @@ function DashboardContent() {
   });
 
   // Wallet deposit state
-  const [depositAmount, setDepositAmount] = useState('');
+  const [depositAmount, setDepositAmount] = useState('100.00');
   const [isDepositing, setIsDepositing] = useState(false);
+  const [balance, setBalance] = useState(0);
+  const [isGatewayOpen, setIsGatewayOpen] = useState(false);
+
+  useEffect(() => {
+    const updateBalance = () => {
+      const current = localStorage.getItem('wallet_balance') || '0.00';
+      setBalance(parseFloat(current));
+    };
+    updateBalance();
+    window.addEventListener('wallet_update', updateBalance);
+    return () => window.removeEventListener('wallet_update', updateBalance);
+  }, []);
 
   // Mechanic Booking state
   const [bookingMech, setBookingMech] = useState<Mechanic | null>(null);
@@ -147,17 +159,23 @@ function DashboardContent() {
     addToast({ type: 'success', title: 'Vehicle Added', message: `${data.brand} ${data.model} is now in your garage.` });
   };
 
-  const handleDeposit = async () => {
-    const amt = parseFloat(depositAmount);
-    if (isNaN(amt) || amt <= 0) return;
-
+  const executeMockDeposit = async () => {
     setIsDepositing(true);
-    await new Promise((r) => setTimeout(r, 1000));
-    setIsDepositing(false);
+    await new Promise(resolve => setTimeout(resolve, 1800));
 
-    addTransaction('deposit', 'Stripe Balance Add', amt);
-    addNotification('Funds Received 💰', `$${amt.toFixed(2)} has been loaded into your Automate Wallet.`, 'system');
-    setDepositAmount('');
+    const current = parseFloat(localStorage.getItem('wallet_balance') || '0.00');
+    const added = parseFloat(depositAmount) || 0;
+    const finalVal = (current + added).toFixed(2);
+
+    localStorage.setItem('wallet_balance', finalVal);
+
+    addTransaction('deposit', 'Deposit via Stripe Secure', added);
+    
+    window.dispatchEvent(new Event('wallet_update'));
+    setIsGatewayOpen(false);
+    setIsDepositing(false);
+    setDepositAmount('100.00');
+    addNotification('Funds Received 💰', `$${added.toFixed(2)} has been loaded into your Automate Wallet.`, 'system');
   };
 
   const onBookingSubmit = async (data: BookingFormValues) => {
@@ -206,21 +224,21 @@ function DashboardContent() {
           >
             {/* Header */}
             <div>
-              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Financial Wallet</h1>
-              <p className="text-sm text-gray-500 font-semibold mt-1">Manage deposits, automated billing and repairs payouts.</p>
+              <h1 className="text-3xl font-display text-slate-950">Financial Wallet</h1>
+              <p className="text-sm text-slate-500 font-semibold mt-1">Manage deposits, automated billing and repairs payouts.</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Bal Card */}
-              <div className="lg:col-span-1 bg-gradient-to-br from-[#111] to-[#222] rounded-[2rem] p-8 text-white relative overflow-hidden shadow-xl border border-white/5">
-                <div className="absolute top-[-50%] left-[-20%] w-[120%] h-[150%] bg-[radial-gradient(ellipse_at_center,_#FF2D2D_0%,_transparent_55%)] opacity-35 blur-[80px] pointer-events-none" />
+              <div className="lg:col-span-1 bg-gradient-to-br from-[#E12F2F] to-red-600 rounded-[2rem] p-8 text-white relative overflow-hidden shadow-lg border border-red-500/20">
+                <div className="absolute top-[-50%] left-[-20%] w-[120%] h-[150%] bg-[radial-gradient(ellipse_at_center,_#FFFFFF_0%,_transparent_55%)] opacity-20 blur-[80px] pointer-events-none" />
                 <div className="relative z-10 flex flex-col justify-between h-full min-h-[220px]">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-xs text-gray-400 font-extrabold uppercase tracking-widest">Available Balance</p>
-                      <h2 className="text-4xl font-extrabold tracking-tight mt-2">${walletBalance.toFixed(2)}</h2>
+                      <p className="text-xs text-white/80 font-extrabold uppercase tracking-widest">Available Balance</p>
+                      <h2 className="text-4xl font-extrabold tracking-tight mt-2">${balance.toFixed(2)}</h2>
                     </div>
-                    <CreditCard className="w-8 h-8 text-[#FF2D2D]" />
+                    <CreditCard className="w-8 h-8 text-white" />
                   </div>
 
                   <div className="mt-8 space-y-4">
@@ -230,17 +248,16 @@ function DashboardContent() {
                         placeholder="100.00"
                         value={depositAmount}
                         onChange={(e) => setDepositAmount(e.target.value)}
-                        className="flex-1 h-11 px-4 rounded-xl border border-white/10 bg-white/5 text-sm font-bold outline-none focus:border-[#FF2D2D]/60 transition-colors"
+                        className="flex-1 h-11 px-4 rounded-xl border border-white/20 bg-white/10 text-sm font-bold text-white placeholder-white/50 outline-none focus:border-white/40 focus:ring-1 focus:ring-white transition-all w-full"
                       />
                       <Button
-                        onClick={handleDeposit}
-                        disabled={isDepositing}
-                        className="h-11 bg-[#FF2D2D] hover:bg-red-600 shadow-md shadow-red-500/25 border-none"
+                        onClick={() => setIsGatewayOpen(true)}
+                        className="h-11 bg-white text-[#E12F2F] hover:bg-slate-50 shadow-md border-none px-6 font-bold cursor-pointer"
                       >
-                        {isDepositing ? 'Adding...' : 'Deposit'}
+                        Deposit
                       </Button>
                     </div>
-                    <span className="text-[10px] text-gray-400 font-bold block">
+                    <span className="text-[10px] text-white/80 font-bold block">
                       Guaranteed secure 256-bit SSL checkout processing via Stripe.
                     </span>
                   </div>
@@ -248,27 +265,27 @@ function DashboardContent() {
               </div>
 
               {/* Transactions List */}
-              <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-150 p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-6">Recent Transactions</h3>
-                <div className="space-y-4 divide-y divide-gray-50">
+              <div className="lg:col-span-2 theme-glass-card rounded-3xl p-6 border-slate-200/60 bg-white/70">
+                <h3 className="text-lg font-bold text-slate-900 mb-6">Recent Transactions</h3>
+                <div className="space-y-4 divide-y divide-slate-100">
                   {transactions.map((t) => (
                     <div key={t.id} className="flex items-center justify-between pt-4 first:pt-0">
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
-                          t.type === 'deposit' 
-                            ? 'bg-green-500/10 text-green-500' 
-                            : t.type === 'booking' 
-                            ? 'bg-blue-500/10 text-blue-500' 
-                            : 'bg-amber-500/10 text-amber-500'
+                          t.type === 'deposit'
+                            ? 'bg-green-50 text-green-600 border border-green-200/50'
+                            : t.type === 'booking'
+                            ? 'bg-blue-50 text-blue-600 border border-blue-200/50'
+                            : 'bg-amber-50 text-amber-600 border border-amber-200/50'
                         }`}>
                           {t.type === 'deposit' ? '+$' : t.type === 'booking' ? 'W' : 'S'}
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-gray-900">{t.title}</p>
-                          <span className="text-[10px] text-gray-400 font-bold">{t.date}</span>
+                          <p className="text-sm font-bold text-slate-900">{t.title}</p>
+                          <span className="text-[10px] text-slate-400 font-bold">{t.date}</span>
                         </div>
                       </div>
-                      <span className={`text-sm font-extrabold ${t.amount >= 0 ? 'text-green-500' : 'text-gray-900'}`}>
+                      <span className={`text-sm font-extrabold ${t.amount >= 0 ? 'text-green-600' : 'text-slate-900'}`}>
                         {t.amount >= 0 ? '+' : ''}${Math.abs(t.amount).toFixed(2)}
                       </span>
                     </div>
@@ -287,10 +304,10 @@ function DashboardContent() {
           >
             {/* Header banner */}
             <div>
-              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+              <h1 className="text-3xl font-display text-slate-950">
                 Welcome back, {user?.name.split(' ')[0] || 'Ahmed'}!
               </h1>
-              <p className="text-sm text-gray-500 font-semibold mt-1">
+              <p className="text-sm text-slate-500 font-semibold mt-1">
                 Manage your garage, diagnostic bookings, and commerce orders all in one place.
               </p>
             </div>
@@ -304,7 +321,7 @@ function DashboardContent() {
                   btnLabel: 'Browse Mechanics',
                   href: '/mechanics',
                   icon: Wrench,
-                  accent: 'bg-[#FF2D2D]/10 border-[#FF2D2D]/20 text-[#FF2D2D] hover:bg-[#FF2D2D] hover:text-white',
+                  accent: 'bg-[#E12F2F]/10 border-[#E12F2F]/20 text-[#E12F2F] hover:bg-[#E12F2F] hover:text-white',
                 },
                 {
                   title: 'Shop Spare Parts',
@@ -312,7 +329,7 @@ function DashboardContent() {
                   btnLabel: 'Browse Shop',
                   href: '/shop',
                   icon: ShoppingBag,
-                  accent: 'bg-[#FF2D2D]/10 border-[#FF2D2D]/20 text-[#FF2D2D] hover:bg-[#FF2D2D] hover:text-white',
+                  accent: 'bg-[#E12F2F]/10 border-[#E12F2F]/20 text-[#E12F2F] hover:bg-[#E12F2F] hover:text-white',
                 },
               ].map((act, i) => (
                 <motion.div
@@ -321,23 +338,23 @@ function DashboardContent() {
                   initial="hidden"
                   animate="visible"
                   variants={cardVariants}
-                  className="bg-white border border-gray-150 rounded-3xl p-6 flex flex-col justify-between gap-6 shadow-sm hover:shadow-md transition-shadow duration-300 relative overflow-hidden group"
+                  className="theme-glass-card bg-white/80 border border-slate-200/70 rounded-3xl p-6 flex flex-col justify-between gap-6 shadow-sm hover:shadow-md transition-all duration-200 relative overflow-hidden group"
                 >
                   <div className="flex gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF2D2D]/10 to-transparent border border-[#FF2D2D]/20 flex items-center justify-center text-[#FF2D2D] flex-shrink-0">
+                    <div className="w-12 h-12 rounded-2xl bg-[#E12F2F]/5 border border-[#E12F2F]/10 flex items-center justify-center text-[#E12F2F] flex-shrink-0">
                       <act.icon className="w-5.5 h-5.5" />
                     </div>
                     <div>
-                      <h3 className="font-extrabold text-gray-900 text-lg group-hover:text-[#FF2D2D] transition-colors">
+                      <h3 className="font-extrabold text-slate-900 text-lg group-hover:text-[#E12F2F] transition-colors">
                         {act.title}
                       </h3>
-                      <p className="text-sm text-gray-500 font-semibold mt-1 leading-relaxed">
+                      <p className="text-sm text-slate-500 font-semibold mt-1 leading-relaxed">
                         {act.desc}
                       </p>
                     </div>
                   </div>
                   <Link href={act.href} className="self-start">
-                    <Button variant="secondary" className="px-6 h-10 font-bold text-xs">
+                    <Button variant="secondary" className="px-6 h-10 font-bold text-xs bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 shadow-sm">
                       {act.btnLabel}
                     </Button>
                   </Link>
@@ -346,22 +363,28 @@ function DashboardContent() {
             </div>
 
             {/* Garage Widget */}
-            <div className="bg-white rounded-3xl border border-gray-150 p-6">
+            <div
+              onClick={() => router.push('/dashboard/my-garage')}
+              className="theme-glass-card bg-white/80 border border-slate-200/70 rounded-3xl p-6 shadow-sm hover:shadow-md cursor-pointer"
+            >
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                    <Car className="w-5 h-5 text-[#FF2D2D]" />
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <Car className="w-5 h-5 text-[#E12F2F]" />
                     My Garage
                   </h3>
-                  <span className="text-xs text-gray-400 font-bold block mt-1">
+                  <span className="text-xs text-slate-500 font-bold block mt-1">
                     {vehicles.length} Active {vehicles.length === 1 ? 'Vehicle' : 'Vehicles'}
                   </span>
                 </div>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => setShowAddVehicleModal(true)}
-                  className="inline-flex items-center gap-1.5 px-4 h-9 bg-gray-100 hover:bg-[#FF2D2D]/10 hover:text-[#FF2D2D] text-xs font-bold rounded-xl border border-gray-250 hover:border-[#FF2D2D]/40 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowAddVehicleModal(true);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-4 h-9 bg-slate-50 hover:bg-[#E12F2F]/5 hover:text-[#E12F2F] text-slate-700 text-xs font-bold rounded-xl border border-slate-200 hover:border-[#E12F2F]/20 transition-colors cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                   Add Car
@@ -369,45 +392,50 @@ function DashboardContent() {
               </div>
 
               {vehicles.length === 0 ? (
-                <div className="py-16 text-center border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center gap-3">
-                  <Car className="w-12 h-12 text-gray-300" />
-                  <p className="font-bold text-gray-900">Your garage is empty</p>
-                  <p className="text-xs text-gray-400 max-w-xs">Add your vehicle model, year, and mileage to unlock smart service scheduling.</p>
+                <div className="py-16 text-center border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center gap-3 bg-white/40">
+                  <Car className="w-12 h-12 text-slate-300" />
+                  <p className="font-bold text-slate-800">Your garage is empty</p>
+                  <p className="text-xs text-slate-500 max-w-xs">Add your vehicle model, year, and mileage to unlock smart service scheduling.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {vehicles.map((v) => (
-                    <div key={v.id} className="flex gap-4 p-4 bg-gray-50 border border-gray-150 rounded-2xl relative overflow-hidden group">
+                    <div
+                      key={v.id}
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex gap-4 p-4 bg-white border border-slate-100 rounded-2xl relative overflow-hidden group cursor-default shadow-sm"
+                    >
                       {v.image && (
-                        <div className="w-20 sm:w-28 h-20 bg-white rounded-xl overflow-hidden flex-shrink-0 relative border border-gray-100">
+                        <div className="w-20 sm:w-28 h-20 bg-slate-50 rounded-xl overflow-hidden flex-shrink-0 relative border border-slate-100">
                           <img src={v.image} alt={v.model} className="object-cover w-full h-full group-hover:scale-105 transition-transform" />
                         </div>
                       )}
                       <div className="flex-grow min-w-0">
-                        <span className="text-[10px] font-bold text-[#FF2D2D] uppercase tracking-widest">{v.brand}</span>
-                        <h4 className="font-bold text-gray-900 text-sm truncate mt-0.5">{v.model}</h4>
-                        <div className="flex flex-col gap-1 mt-2 text-xs text-gray-500 font-semibold">
+                        <span className="text-[10px] font-bold text-[#E12F2F] uppercase tracking-widest">{v.brand}</span>
+                        <h4 className="font-bold text-slate-900 text-sm truncate mt-0.5">{v.model}</h4>
+                        <div className="flex flex-col gap-1 mt-2 text-xs text-slate-500 font-semibold">
                           <span className="flex items-center gap-1">
-                            <Gauge className="w-3.5 h-3.5 text-gray-400" />
+                            <Gauge className="w-3.5 h-3.5 text-slate-400" />
                             {v.mileage.toLocaleString()} mi
                           </span>
                           <span className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold self-start mt-1 ${
-                            v.status === 'Perfect' 
-                              ? 'bg-green-500/10 text-green-500' 
-                              : v.status === 'Needs Attention' 
-                              ? 'bg-amber-500/10 text-amber-500' 
-                              : 'bg-blue-500/10 text-blue-500'
+                            v.status === 'Perfect'
+                              ? 'bg-green-50 text-green-600 border border-green-200/50'
+                              : v.status === 'Needs Attention'
+                              ? 'bg-amber-50 text-amber-600 border border-amber-200/50'
+                              : 'bg-blue-50 text-blue-600 border border-blue-200/50'
                           }`}>
                             {v.status}
                           </span>
                         </div>
                       </div>
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           removeVehicle(v.id);
                           addNotification('Vehicle Removed ❌', `${v.brand} has been removed from your account.`, 'system');
                         }}
-                        className="absolute right-3 top-3 w-7 h-7 bg-white/80 hover:bg-red-50 border border-gray-150 hover:border-red-200 text-gray-400 hover:text-red-500 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+                        className="absolute right-3 top-3 w-8 h-8 min-h-[32px] min-w-[32px] bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 text-slate-400 hover:text-red-600 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -420,32 +448,32 @@ function DashboardContent() {
             {/* Mechanics & Orders */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Fav Mechanics */}
-              <div className="bg-white rounded-3xl border border-gray-150 p-6 flex flex-col justify-between">
+              <div className="theme-glass-card bg-white/80 border border-slate-200/70 rounded-3xl p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-200">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    <Heart className="w-5 h-5 fill-[#FF2D2D] text-[#FF2D2D]" />
+                  <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+                    <Heart className="w-5 h-5 fill-[#E12F2F] text-[#E12F2F]" />
                     Favorite Mechanics
                   </h3>
                   <div className="space-y-4">
                     {mechanics.filter(m => m.isFavorite).map((m) => (
-                      <div key={m.id} className="flex items-center justify-between p-3.5 rounded-2xl bg-gray-50 border border-gray-100">
+                      <div key={m.id} className="flex items-center justify-between p-3.5 rounded-2xl bg-white border border-slate-100 shadow-sm">
                         <div className="flex items-center gap-3">
-                          <img src={m.avatar} alt={m.name} className="w-10 h-10 rounded-xl object-cover" />
+                          <img src={m.avatar} alt={m.name} className="w-10 h-10 rounded-xl object-cover border border-slate-100" />
                           <div>
-                            <p className="font-bold text-gray-900 text-sm">{m.name}</p>
-                            <p className="text-[10px] text-gray-400 font-bold">{m.garageName}</p>
+                            <p className="font-bold text-slate-900 text-sm">{m.name}</p>
+                            <p className="text-[10px] text-slate-400 font-bold">{m.garageName}</p>
                           </div>
                         </div>
                         <div className="flex gap-2">
                           <button
                             onClick={() => setBookingMech(m)}
-                            className="h-8 px-3 rounded-lg bg-[#FF2D2D] hover:bg-red-600 text-white text-xs font-bold transition-all shadow-sm"
+                            className="h-8 px-3 rounded-lg bg-[#E12F2F] hover:bg-[#C41F1F] text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
                           >
                             Book Slot
                           </button>
                           <button
                             onClick={() => toggleFavoriteMechanic(m.id)}
-                            className="w-8 h-8 rounded-lg bg-white border border-gray-250 flex items-center justify-center text-[#FF2D2D]"
+                            className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-[#E12F2F] hover:bg-slate-100 cursor-pointer"
                           >
                             <Heart className="w-4 h-4 fill-current" />
                           </button>
@@ -455,37 +483,37 @@ function DashboardContent() {
                   </div>
                 </div>
                 <Link href="/mechanics" className="block mt-6">
-                  <span className="text-xs font-bold text-[#FF2D2D] hover:underline flex items-center gap-1.5 cursor-pointer">
+                  <span className="text-xs font-bold text-[#E12F2F] hover:underline flex items-center gap-1.5 cursor-pointer">
                     Browse All Certified Vetted Mechanics →
                   </span>
                 </Link>
               </div>
 
               {/* Recent Orders */}
-              <div className="bg-white rounded-3xl border border-gray-150 p-6 flex flex-col justify-between">
+              <div className="theme-glass-card bg-white/80 border border-slate-200/70 rounded-3xl p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-200">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    <ShoppingBag className="w-5 h-5 text-[#FF2D2D]" />
+                  <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+                    <ShoppingBag className="w-5 h-5 text-[#E12F2F]" />
                     Recent Orders
                   </h3>
                   <div className="space-y-4">
                     {orders.map((o) => (
-                      <div key={o.id} className="flex items-center justify-between p-3.5 rounded-2xl bg-gray-50 border border-gray-100">
+                      <div key={o.id} className="flex items-center justify-between p-3.5 rounded-2xl bg-white border border-slate-100 shadow-sm">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center flex-shrink-0">
-                            <ShoppingBag className="w-5 h-5 text-gray-300" />
+                          <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0">
+                            <ShoppingBag className="w-5 h-5 text-slate-400" />
                           </div>
                           <div>
-                            <p className="font-bold text-gray-900 text-sm leading-tight">{o.productName}</p>
-                            <p className="text-[10px] text-gray-400 font-bold mt-0.5">{o.brand} · ${o.price}</p>
+                            <p className="font-bold text-slate-900 text-sm leading-tight">{o.productName}</p>
+                            <p className="text-[10px] text-slate-500 font-bold mt-0.5">{o.brand} · ${o.price}</p>
                           </div>
                         </div>
                         <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                          o.status === 'Delivered' 
-                            ? 'bg-green-500/10 text-green-500' 
-                            : o.status === 'In Transit' 
-                            ? 'bg-blue-500/10 text-blue-500' 
-                            : 'bg-amber-500/10 text-amber-500'
+                          o.status === 'Delivered'
+                            ? 'bg-green-50 text-green-600 border border-green-200/50'
+                            : o.status === 'In Transit'
+                            ? 'bg-blue-50 text-blue-600 border border-blue-200/50'
+                            : 'bg-amber-50 text-amber-600 border border-amber-200/50'
                         }`}>
                           {o.status === 'Delivered' ? <CheckCircle className="w-3 h-3" /> : o.status === 'In Transit' ? <Truck className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
                           {o.status}
@@ -495,7 +523,7 @@ function DashboardContent() {
                   </div>
                 </div>
                 <Link href="/shop" className="block mt-6">
-                  <span className="text-xs font-bold text-[#FF2D2D] hover:underline flex items-center gap-1.5 cursor-pointer">
+                  <span className="text-xs font-bold text-[#E12F2F] hover:underline flex items-center gap-1.5 cursor-pointer">
                     Browse OEM Genuine Parts Store →
                   </span>
                 </Link>
@@ -540,7 +568,7 @@ function DashboardContent() {
                     disabled={isAddingVehicle}
                     {...registerVehicle('brand')}
                     className={`w-full h-11 px-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
-                      vehicleErrors.brand ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#FF2D2D]/40'
+                      vehicleErrors.brand ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#E12F2F]/40'
                     }`}
                   />
                   {vehicleErrors.brand && <p className="text-[10px] font-bold text-red-500 mt-1">{vehicleErrors.brand.message}</p>}
@@ -553,7 +581,7 @@ function DashboardContent() {
                     disabled={isAddingVehicle}
                     {...registerVehicle('model')}
                     className={`w-full h-11 px-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
-                      vehicleErrors.model ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#FF2D2D]/40'
+                      vehicleErrors.model ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#E12F2F]/40'
                     }`}
                   />
                   {vehicleErrors.model && <p className="text-[10px] font-bold text-red-500 mt-1">{vehicleErrors.model.message}</p>}
@@ -567,7 +595,7 @@ function DashboardContent() {
                       disabled={isAddingVehicle}
                       {...registerVehicle('year')}
                       className={`w-full h-11 px-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
-                        vehicleErrors.year ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#FF2D2D]/40'
+                        vehicleErrors.year ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#E12F2F]/40'
                       }`}
                     />
                     {vehicleErrors.year && <p className="text-[10px] font-bold text-red-500 mt-1">{String(vehicleErrors.year.message)}</p>}
@@ -580,14 +608,14 @@ function DashboardContent() {
                       disabled={isAddingVehicle}
                       {...registerVehicle('mileage')}
                       className={`w-full h-11 px-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
-                        vehicleErrors.mileage ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#FF2D2D]/40'
+                        vehicleErrors.mileage ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#E12F2F]/40'
                       }`}
                     />
                     {vehicleErrors.mileage && <p className="text-[10px] font-bold text-red-500 mt-1">{String(vehicleErrors.mileage.message)}</p>}
                   </div>
                 </div>
                 <div className="pt-4">
-                  <Button type="submit" fullWidth disabled={isAddingVehicle} className="h-12 bg-[#FF2D2D] text-white hover:bg-red-600 font-bold">
+                  <Button type="submit" fullWidth disabled={isAddingVehicle} className="h-12 bg-[#E12F2F] text-white hover:bg-red-600 font-bold">
                     {isAddingVehicle ? 'Adding Vehicle...' : 'Park Vehicle In Garage'}
                   </Button>
                 </div>
@@ -633,7 +661,7 @@ function DashboardContent() {
                   <select
                     {...registerBooking('service')}
                     disabled={isBookingMech}
-                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#FF2D2D]/40 transition-colors cursor-pointer disabled:opacity-60"
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#E12F2F]/40 transition-colors cursor-pointer disabled:opacity-60"
                   >
                     <option value="Standard Diagnostics">Diagnostic Session ($49.00)</option>
                     <option value="Full Engine Oil Flush">Full Oil Flush ($99.00)</option>
@@ -651,7 +679,7 @@ function DashboardContent() {
                       {...registerBooking('date')}
                       disabled={isBookingMech}
                       className={`w-full h-11 px-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
-                        bookingErrors.date ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#FF2D2D]/40'
+                        bookingErrors.date ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#E12F2F]/40'
                       }`}
                     />
                     {bookingErrors.date && <p className="text-[10px] font-bold text-red-500 mt-1">{String(bookingErrors.date.message)}</p>}
@@ -663,7 +691,7 @@ function DashboardContent() {
                       {...registerBooking('time')}
                       disabled={isBookingMech}
                       className={`w-full h-11 px-4 rounded-xl border bg-gray-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
-                        bookingErrors.time ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#FF2D2D]/40'
+                        bookingErrors.time ? 'border-red-400 focus:border-red-400' : 'border-gray-200 focus:border-[#E12F2F]/40'
                       }`}
                     />
                     {bookingErrors.time && <p className="text-[10px] font-bold text-red-500 mt-1">{String(bookingErrors.time.message)}</p>}
@@ -675,7 +703,7 @@ function DashboardContent() {
                     type="submit"
                     fullWidth
                     disabled={isBookingMech}
-                    className="h-12 bg-[#FF2D2D] text-white hover:bg-red-600 font-bold"
+                    className="h-12 bg-[#E12F2F] text-white hover:bg-red-600 font-bold"
                   >
                     {isBookingMech ? 'Processing Payment...' : 'Confirm & Authorize Payment'}
                   </Button>
@@ -685,6 +713,46 @@ function DashboardContent() {
           </>
         )}
       </AnimatePresence>
+
+      {/* ── STRIPE GATEWAY MODAL ── */}
+      <AnimatePresence>
+        {isGatewayOpen && (
+          <motion.div
+             initial={{ opacity: 0 }}
+             animate={{ opacity: 1 }}
+             exit={{ opacity: 0 }}
+             className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center animate-fade-in"
+          >
+             <motion.div 
+               initial={{ opacity: 0, scale: 0.95, y: 15 }}
+               animate={{ opacity: 1, scale: 1, y: 0 }}
+               exit={{ opacity: 0, scale: 0.95, y: 15 }}
+               className="bg-white border border-slate-200/80 rounded-3xl p-6 w-full max-w-md shadow-2xl space-y-4 relative"
+             >
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Automate Payment Network</span>
+                  <button onClick={() => setIsGatewayOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer"><X className="w-5 h-5"/></button>
+                </div>
+                <div className="text-4xl font-black text-slate-950 mt-2 mb-6 tracking-tight">
+                  +${parseFloat(depositAmount || '0').toFixed(2)}
+                </div>
+                
+                <div className="rounded-xl border border-slate-200 overflow-hidden bg-slate-50 shadow-sm">
+                  <input type="text" placeholder="Card Number (4242 •••• •••• ••••)" className="w-full bg-transparent text-slate-900 text-sm border-b border-slate-200 p-3.5 focus:outline-none focus:bg-white transition-colors font-semibold" />
+                  <div className="flex">
+                    <input type="text" placeholder="MM/YY" className="w-1/2 bg-transparent text-slate-900 text-sm border-r border-slate-200 p-3.5 focus:outline-none focus:bg-white transition-colors font-semibold" />
+                    <input type="text" placeholder="CVC" className="w-1/2 bg-transparent text-slate-900 text-sm p-3.5 focus:outline-none focus:bg-white transition-colors font-semibold" />
+                  </div>
+                </div>
+
+                <button type="button" onClick={executeMockDeposit} disabled={isDepositing} className="w-full bg-[#E62424] hover:bg-[#d01f1f] text-white text-sm font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 mt-6 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed">
+                  {isDepositing ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
+                  {isDepositing ? 'Authorizing...' : 'Authorize Transaction & Deposit'}
+                </button>
+             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </WorkspaceLayout>
   );
 }
@@ -692,9 +760,9 @@ function DashboardContent() {
 export default function DashboardPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#FAFAFA] flex flex-col items-center justify-center font-sans text-gray-900">
+      <div className="min-h-screen bg-[#F5F5F5] flex flex-col items-center justify-center font-sans text-gray-900">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-3 border-gray-200 border-t-[#FF2D2D] rounded-full animate-spin" />
+          <div className="w-10 h-10 border-3 border-gray-200 border-t-[#E12F2F] rounded-full animate-spin" />
         </div>
       </div>
     }>

@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShoppingCart, Plus, Minus, Trash2, ArrowRight, PackageOpen } from 'lucide-react';
+import { X, ShoppingCart, Plus, Minus, Trash2, ArrowRight, PackageOpen, Check } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '../../store/cartStore';
@@ -14,6 +14,8 @@ export function CartDrawer() {
   const { user, checkoutCart } = useAuthStore();
   const count = totalItems();
   const total = totalPrice();
+
+  const [workshopInstall, setWorkshopInstall] = useState(false);
 
   const handleCheckout = () => {
     // Task A: fire cross-role event — creates MerchantOrders + notifies each Merchant
@@ -34,7 +36,7 @@ export function CartDrawer() {
       clearCart();
     }
     closeCart();
-    router.push('/shop/checkout');
+    router.push(workshopInstall ? '/shop/checkout?workshopInstall=true' : '/shop/checkout');
   };
 
   return (
@@ -60,8 +62,8 @@ export function CartDrawer() {
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#FF2D2D]/10 flex items-center justify-center">
-                  <ShoppingCart className="w-5 h-5 text-[#FF2D2D]" />
+                <div className="w-9 h-9 rounded-xl bg-[#E12F2F]/10 flex items-center justify-center">
+                  <ShoppingCart className="w-5 h-5 text-[#E12F2F]" />
                 </div>
                 <div>
                   <h2 className="font-bold text-gray-900 text-lg">Your Cart</h2>
@@ -90,9 +92,9 @@ export function CartDrawer() {
                     <motion.div
                       animate={{ y: [0, -10, 0] }}
                       transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                      className="w-20 h-20 rounded-3xl bg-[#FF2D2D]/8 flex items-center justify-center"
+                      className="w-20 h-20 rounded-3xl bg-[#E12F2F]/8 flex items-center justify-center"
                     >
-                      <PackageOpen className="w-10 h-10 text-[#FF2D2D]/50" />
+                      <PackageOpen className="w-10 h-10 text-[#E12F2F]/50" />
                     </motion.div>
                     <div>
                       <p className="font-bold text-gray-900 text-lg mb-1">Your cart is empty</p>
@@ -108,7 +110,7 @@ export function CartDrawer() {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 40, height: 0 }}
                       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                      className="flex gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100 hover:border-[#FF2D2D]/20 transition-colors group"
+                      className="flex gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100 hover:border-[#E12F2F]/20 transition-colors group"
                     >
                       <div className="relative w-16 h-16 rounded-xl bg-white border border-gray-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
                         <Image
@@ -121,20 +123,20 @@ export function CartDrawer() {
                         <ShoppingCart className="w-6 h-6 text-gray-200 absolute" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-bold text-[#FF2D2D] uppercase tracking-widest">{item.product.brand}</p>
+                        <p className="text-[11px] font-bold text-[#E12F2F] uppercase tracking-widest">{item.product.brand}</p>
                         <p className="font-semibold text-gray-900 text-sm leading-tight line-clamp-2 mb-2">{item.product.name}</p>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <motion.button whileTap={{ scale: 0.85 }} onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                              className="w-7 h-7 rounded-lg bg-white border border-gray-200 flex items-center justify-center hover:border-[#FF2D2D]/40 hover:text-[#FF2D2D] transition-colors">
+                              className="w-7 h-7 rounded-lg bg-white border border-gray-200 flex items-center justify-center hover:border-[#E12F2F]/40 hover:text-[#E12F2F] transition-colors">
                               <Minus className="w-3 h-3" />
                             </motion.button>
-                            <motion.span key={item.quantity} initial={{ scale: 1.3, color: '#FF2D2D' }} animate={{ scale: 1, color: '#111111' }}
+                            <motion.span key={item.quantity} initial={{ scale: 1.3, color: '#E12F2F' }} animate={{ scale: 1, color: '#0F0F0F' }}
                               className="w-6 text-center text-sm font-bold">
                               {item.quantity}
                             </motion.span>
                             <motion.button whileTap={{ scale: 0.85 }} onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                              className="w-7 h-7 rounded-lg bg-white border border-gray-200 flex items-center justify-center hover:border-[#FF2D2D]/40 hover:text-[#FF2D2D] transition-colors">
+                              className="w-7 h-7 rounded-lg bg-white border border-gray-200 flex items-center justify-center hover:border-[#E12F2F]/40 hover:text-[#E12F2F] transition-colors">
                               <Plus className="w-3 h-3" />
                             </motion.button>
                           </div>
@@ -162,16 +164,33 @@ export function CartDrawer() {
                   <div className="flex items-center justify-between text-sm text-gray-500">
                     <span>Shipping</span><span className="font-semibold text-green-500">Free</span>
                   </div>
+
+                  {/* Mechanic Delivery Checkbox */}
+                  <label className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer group hover:border-[#E62424]/30 transition-colors">
+                    <div className="relative flex items-center justify-center mt-0.5">
+                      <input
+                        type="checkbox"
+                        checked={workshopInstall}
+                        onChange={(e) => setWorkshopInstall(e.target.checked)}
+                        className="peer appearance-none w-4 h-4 rounded border border-slate-300 checked:bg-[#E62424] checked:border-[#E62424] transition-colors cursor-pointer"
+                      />
+                      <Check className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" strokeWidth={3} />
+                    </div>
+                    <span className="text-slate-700 font-medium text-xs leading-relaxed group-hover:text-slate-900 transition-colors">
+                      🔧 Deliver directly to my selected partner mechanic workshop for installation.
+                    </span>
+                  </label>
+
                   <div className="h-px bg-gray-100" />
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-gray-900 text-lg">Total</span>
                     <span className="font-extrabold text-gray-900 text-xl">${total.toFixed(2)}</span>
                   </div>
-                  <motion.button 
-                    whileHover={{ scale: 1.02, y: -1 }} 
+                  <motion.button
+                    whileHover={{ scale: 1.02, y: -1 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleCheckout}
-                    className="w-full flex items-center justify-center gap-3 h-14 rounded-2xl bg-[#FF2D2D] text-white font-semibold text-base shadow-[0_0_30px_rgba(255,45,45,0.35)] hover:shadow-[0_0_40px_rgba(255,45,45,0.55)] transition-all duration-300 relative overflow-hidden group"
+                    className="w-full flex items-center justify-center gap-3 h-14 rounded-2xl bg-[#E12F2F] text-white font-semibold text-base shadow-[0_0_30px_rgba(255,45,45,0.35)] hover:shadow-[0_0_40px_rgba(255,45,45,0.55)] transition-all duration-300 relative overflow-hidden group"
                   >
                     <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover:animate-shimmer" />
                     <span>Proceed to Checkout</span>

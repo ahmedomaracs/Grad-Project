@@ -46,8 +46,8 @@ export function FilterDrawer({ isOpen, onClose, filters, onChange, onReset }: Fi
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#FF2D2D]/10 flex items-center justify-center">
-                  <SlidersHorizontal className="w-5 h-5 text-[#FF2D2D]" />
+                <div className="w-9 h-9 rounded-xl bg-[#E12F2F]/10 flex items-center justify-center">
+                  <SlidersHorizontal className="w-5 h-5 text-[#E12F2F]" />
                 </div>
                 <h2 className="font-bold text-gray-900 text-lg">Filters</h2>
               </div>
@@ -55,7 +55,7 @@ export function FilterDrawer({ isOpen, onClose, filters, onChange, onReset }: Fi
                 <motion.button
                   whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                   onClick={onReset}
-                  className="flex items-center gap-1.5 px-3 h-8 rounded-lg text-xs font-semibold text-gray-500 hover:text-[#FF2D2D] hover:bg-[#FF2D2D]/5 transition-colors"
+                  className="flex items-center gap-1.5 px-3 h-8 rounded-lg text-xs font-semibold text-gray-500 hover:text-[#E12F2F] hover:bg-[#E12F2F]/5 transition-colors"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   Reset
@@ -83,7 +83,7 @@ export function FilterDrawer({ isOpen, onClose, filters, onChange, onReset }: Fi
                       className={cn(
                         'w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
                         filters.sortBy === opt.value
-                          ? 'bg-[#FF2D2D]/8 text-[#FF2D2D] border border-[#FF2D2D]/20'
+                          ? 'bg-[#E12F2F]/8 text-[#E12F2F] border border-[#E12F2F]/20'
                           : 'text-gray-700 hover:bg-gray-50 border border-transparent'
                       )}
                     >
@@ -91,7 +91,7 @@ export function FilterDrawer({ isOpen, onClose, filters, onChange, onReset }: Fi
                       {filters.sortBy === opt.value && (
                         <motion.div
                           initial={{ scale: 0 }} animate={{ scale: 1 }}
-                          className="w-2 h-2 rounded-full bg-[#FF2D2D]"
+                          className="w-2 h-2 rounded-full bg-[#E12F2F]"
                         />
                       )}
                     </motion.button>
@@ -110,7 +110,7 @@ export function FilterDrawer({ isOpen, onClose, filters, onChange, onReset }: Fi
                         type="number"
                         value={filters.priceRange[0]}
                         onChange={(e) => onChange({ priceRange: [Number(e.target.value), filters.priceRange[1]] })}
-                        className="w-full h-10 px-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-900 outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                        className="w-full h-10 px-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-900 outline-none focus:border-[#E12F2F]/40 transition-colors"
                       />
                     </div>
                     <div className="flex-1">
@@ -119,7 +119,7 @@ export function FilterDrawer({ isOpen, onClose, filters, onChange, onReset }: Fi
                         type="number"
                         value={filters.priceRange[1]}
                         onChange={(e) => onChange({ priceRange: [filters.priceRange[0], Number(e.target.value)] })}
-                        className="w-full h-10 px-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-900 outline-none focus:border-[#FF2D2D]/40 transition-colors"
+                        className="w-full h-10 px-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-900 outline-none focus:border-[#E12F2F]/40 transition-colors"
                       />
                     </div>
                   </div>
@@ -132,8 +132,8 @@ export function FilterDrawer({ isOpen, onClose, filters, onChange, onReset }: Fi
                         className={cn(
                           'px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-200',
                           filters.priceRange[0] === min && filters.priceRange[1] === max
-                            ? 'bg-[#FF2D2D] text-white border-[#FF2D2D]'
-                            : 'border-gray-200 text-gray-600 hover:border-[#FF2D2D]/40 hover:text-[#FF2D2D]'
+                            ? 'bg-[#E12F2F] text-white border-[#E12F2F]'
+                            : 'border-gray-200 text-gray-600 hover:border-[#E12F2F]/40 hover:text-[#E12F2F]'
                         )}
                       >
                         ${min} – {max === 999 ? '999+' : `$${max}`}
@@ -152,14 +152,14 @@ export function FilterDrawer({ isOpen, onClose, filters, onChange, onReset }: Fi
                   className={cn(
                     'w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium border transition-all duration-200',
                     filters.inStockOnly
-                      ? 'bg-[#FF2D2D]/8 text-[#FF2D2D] border-[#FF2D2D]/20'
+                      ? 'bg-[#E12F2F]/8 text-[#E12F2F] border-[#E12F2F]/20'
                       : 'text-gray-700 border-gray-200 hover:bg-gray-50'
                   )}
                 >
                   In Stock Only
                   <div className={cn(
                     'relative w-10 h-5.5 rounded-full transition-colors duration-300',
-                    filters.inStockOnly ? 'bg-[#FF2D2D]' : 'bg-gray-200'
+                    filters.inStockOnly ? 'bg-[#E12F2F]' : 'bg-gray-200'
                   )}>
                     <motion.div
                       animate={{ x: filters.inStockOnly ? 20 : 2 }}
@@ -176,7 +176,7 @@ export function FilterDrawer({ isOpen, onClose, filters, onChange, onReset }: Fi
               <motion.button
                 whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                 onClick={onClose}
-                className="w-full h-13 rounded-2xl bg-[#FF2D2D] text-white font-semibold text-base shadow-[0_0_24px_rgba(255,45,45,0.3)] hover:shadow-[0_0_36px_rgba(255,45,45,0.5)] transition-all duration-300"
+                className="w-full h-13 rounded-2xl bg-[#E12F2F] text-white font-semibold text-base shadow-[0_0_24px_rgba(255,45,45,0.3)] hover:shadow-[0_0_36px_rgba(255,45,45,0.5)] transition-all duration-300"
               >
                 Apply Filters
               </motion.button>
