@@ -47,7 +47,8 @@ export default function AboutPage() {
     <div className="min-h-screen bg-white font-sans text-[#0F0F0F] flex flex-col overflow-x-hidden">
       <Navbar />
 
-      {/* ── HERO BANNER ── */}
+      <main id="main-content" className="flex-grow">
+        {/* ── HERO BANNER ── */}
       <section className="relative bg-[#0F0F0F] text-white pt-36 pb-24 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <img src="/assets/automate/mechanic-2.jpg" alt="" className="w-full h-full object-cover opacity-20" />
@@ -315,6 +316,8 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+
+      </main>
 
       <Footer />
     </div>

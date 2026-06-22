@@ -47,6 +47,9 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased bg-white text-ink font-sans">
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-[#E62424] text-white px-4 py-2 rounded-xl font-bold z-[9999]">
+          Skip to main content
+        </a>
         <ClientProviders>
           {children}
         </ClientProviders>

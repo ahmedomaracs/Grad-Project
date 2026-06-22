@@ -22,7 +22,7 @@ export default function LandingPage() {
       <div className="min-h-screen bg-white font-sans selection:bg-brand/20 selection:text-brand overflow-x-hidden text-ink relative overflow-hidden before:absolute before:inset-0 before:bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] before:[background-size:24px_24px] before:opacity-30 before:pointer-events-none">
         <Navbar />
 
-        <main>
+        <main id="main-content">
           <Hero />
           <Statistics />
           <FeaturesSection />

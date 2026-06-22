@@ -15,7 +15,7 @@ export default function TermsPage() {
     <div className="min-h-screen bg-[#0F0F0F] font-sans text-white selection:bg-[#E12F2F]/20 selection:text-[#E12F2F] flex flex-col justify-between overflow-x-hidden">
       <Navbar />
 
-      <main className="flex-grow pt-32 pb-24 px-6 lg:px-16 max-w-7xl mx-auto w-full relative z-10">
+      <main id="main-content" className="flex-grow pt-32 pb-24 px-6 lg:px-16 max-w-7xl mx-auto w-full relative z-10">
         {/* Ambient Glow */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[radial-gradient(circle_at_center,_#E12F2F_0%,_transparent_65%)] opacity-5 blur-[120px] pointer-events-none" />
 
