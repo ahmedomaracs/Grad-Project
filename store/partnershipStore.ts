@@ -84,11 +84,6 @@ export const usePartnershipStore = create<PartnershipStore>()(
         set((state) => {
           const updatedApplications = state.applications.map((app) => {
             if (app.id === id) {
-              // Print mock client system notification trace
-              console.log(
-                `%c [B2B SYSTEM NOTICE] Application approved for ${app.applicantName} (${app.businessName}) as ${app.roleApplied}. Access permissions granted. JWT role tokens generated.`,
-                'color: #00ff00; font-weight: bold; background-color: #111; padding: 4px; border-radius: 4px;'
-              );
               return { ...app, status: 'approved' as const };
             }
             return app;
@@ -99,10 +94,6 @@ export const usePartnershipStore = create<PartnershipStore>()(
         set((state) => {
           const updatedApplications = state.applications.map((app) => {
             if (app.id === id) {
-              console.log(
-                `%c [B2B SYSTEM NOTICE] Application denied for ${app.applicantName} (${app.businessName}). Reason: ${reason}`,
-                'color: #ff0000; font-weight: bold; background-color: #111; padding: 4px; border-radius: 4px;'
-              );
               return {
                 ...app,
                 status: 'rejected' as const,

@@ -3,8 +3,10 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { X } from 'lucide-react';
+import { usePartnershipStore } from '../../store/partnershipStore';
 
 export default function BecomeMerchant() {
+  const addApplication = usePartnershipStore((state) => state.addApplication);
   const [formData, setFormData] = useState({
     fullName: '',
     businessName: '',
@@ -18,7 +20,17 @@ export default function BecomeMerchant() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Secure application payload:', { ...formData, role: 'MERCHANT', status: 'pending' });
+    addApplication({
+      applicantName: formData.fullName,
+      businessName: formData.businessName,
+      email: formData.email,
+      phone: formData.phone,
+      roleApplied: 'Merchant',
+      roleData: {
+        vatNumber: formData.vatNumber,
+        inventoryCategory: formData.storeCategory,
+      }
+    });
     setSubmitted(true);
   };
 

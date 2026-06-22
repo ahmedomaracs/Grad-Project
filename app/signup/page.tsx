@@ -249,7 +249,7 @@ function SignupPageContent() {
                         </span>
                       </div>
                       <div className="flex gap-1 h-1">
-                        {[1, 2, 3, 4].map((step, idx) => (
+                        {[1, 2, 3, 4].map((_, idx) => (
                           <div
                             key={idx}
                             className={`flex-1 rounded-full transition-all duration-300 ${

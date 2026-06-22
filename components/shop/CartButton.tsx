@@ -14,7 +14,7 @@ interface CartButtonProps {
 export function CartButton({ className, variant = 'navbar' }: CartButtonProps) {
   const { toggleCart, totalItems } = useCartStore();
   const count = totalItems();
-  const [prevCount, setPrevCount] = useState(count);
+  const [prevCount, setPrevCount] = useState(0);
   const [bumped, setBumped] = useState(false);
 
   useEffect(() => {

@@ -1,0 +1,16 @@
+{
+  "name": "Automate",
+  "short_name": "Automate",
+  "description": "Premium Automotive SaaS — Manage vehicles, book mechanics, shop parts.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#E62424",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}

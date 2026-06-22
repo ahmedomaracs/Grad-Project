@@ -15,10 +15,10 @@ export default function SplashScreen() {
         </div>
       </div>
 
-      {/* CarHive Heading */}
+      {/* Automate Heading */}
       <div className="absolute top-[447px] left-1/2 -translate-x-1/2 text-center w-full">
         <h1 className="font-display text-[52px] leading-[52px] tracking-[1px] text-[#0F0F0F] uppercase">
-          CarHive
+          Automate
         </h1>
       </div>
 

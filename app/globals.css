@@ -3,7 +3,7 @@
 :root {
   --background: #FFFFFF;
   --foreground: #0F0F0F;
-  /* CarHive brand palette */
+  /* Automate brand palette */
   --brand-red: 230 36 36;      /* #E62424 */
   --brand-ink: 15 15 15;       /* #0F0F0F */
   --text-main: 15 15 15;
@@ -15,7 +15,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  /* CarHive design tokens */
+  /* Automate design tokens */
   --color-ink: #0F0F0F;
   --color-ink-soft: #1A1A1A;
   --color-brand: #E62424;
@@ -42,7 +42,7 @@ body {
   overflow-x: hidden;
 }
 
-/* CarHive display headings */
+/* Automate display headings */
 .font-display {
   font-family: var(--font-anton), "Arial Narrow", Impact, sans-serif;
   font-weight: 400;
@@ -108,7 +108,7 @@ body {
   animation: shimmer 1.2s ease-in-out;
 }
 
-/* CarHive section helpers */
+/* Automate section helpers */
 @utility text-stroke-brand {
   -webkit-text-stroke: 1.5px #E62424;
   color: transparent;

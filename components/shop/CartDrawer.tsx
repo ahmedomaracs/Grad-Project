@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShoppingCart, Plus, Minus, Trash2, ArrowRight, PackageOpen, Check } from 'lucide-react';
 import Image from 'next/image';
@@ -14,6 +14,8 @@ export function CartDrawer() {
   const { user, checkoutCart } = useAuthStore();
   const count = totalItems();
   const total = totalPrice();
+
+
 
   const [workshopInstall, setWorkshopInstall] = useState(false);
 

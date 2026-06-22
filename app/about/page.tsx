@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navbar } from '../../components/layout/Navbar';
 import { Footer } from '../../components/layout/Footer';
 import { Testimonials } from '../../components/sections/Testimonials';
@@ -9,17 +9,17 @@ import { CheckCircle2, Phone, Award, ArrowRight, ChevronRight } from 'lucide-rea
 import Link from 'next/link';
 
 const TEAM = [
-  { name: 'Ahmed Khalid', role: 'CEO & Founder',     img: '/assets/carhive/team-1.jpg' },
-  { name: 'Yusuf Hassan', role: 'Lead Mechanic',      img: '/assets/carhive/team-2.jpg' },
-  { name: 'Omar Faruk',   role: 'Auto Technician',    img: '/assets/carhive/team-3.jpg' },
-  { name: 'Ali Mansour',  role: 'Diagnostics Expert', img: '/assets/carhive/team-4.jpg' },
+  { name: 'Ahmed Khalid', role: 'CEO & Founder',     img: '/assets/automate/team-1.jpg' },
+  { name: 'Yusuf Hassan', role: 'Lead Mechanic',      img: '/assets/automate/team-2.jpg' },
+  { name: 'Omar Faruk',   role: 'Auto Technician',    img: '/assets/automate/team-3.jpg' },
+  { name: 'Ali Mansour',  role: 'Diagnostics Expert', img: '/assets/automate/team-4.jpg' },
 ];
 const STEPS = [
   { n: '01', t: 'Book Your Service',          d: 'Select your service, date, and a certified technician from our verified network.' },
   { n: '02', t: 'Expert Inspection & Repair', d: 'Our certified mechanic performs a full diagnostic and precision repair at your location.' },
   { n: '03', t: 'Drive Away Safely',          d: 'Get your vehicle back in peak condition with a full service report and warranty.' },
 ];
-const PARTNERS = [1,2,3,4,5,6].map(i => `/assets/carhive/client-${i}.png`);
+const PARTNERS = [1,2,3,4,5,6].map(i => `/assets/automate/client-${i}.png`);
 const STATS = [
   { v: '250+',   l: 'Our Testimonials' },
   { v: '1,250+', l: 'Satisfied Clients'  },
@@ -38,7 +38,7 @@ export default function AboutPage() {
       {/* ── HERO BANNER ── */}
       <section className="relative bg-[#0F0F0F] text-white pt-36 pb-24 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <img src="/assets/carhive/mechanic-2.jpg" alt="" className="w-full h-full object-cover opacity-20" />
+          <img src="/assets/automate/mechanic-2.jpg" alt="" className="w-full h-full object-cover opacity-20" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#0F0F0F] via-[#0F0F0F]/90 to-[#0F0F0F]/50" />
           <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[radial-gradient(circle_at_bottom_left,#E12F2F,transparent_60%)] opacity-[0.12] blur-[80px]" />
         </div>
@@ -56,7 +56,7 @@ export default function AboutPage() {
                 Driven By Passion<br /><span className="text-[#E12F2F]">Powered By</span> Precision
               </h1>
               <p className="text-slate-300 text-sm leading-relaxed mb-8 max-w-lg">
-                CarHive connects you with elite certified mechanics for diagnostics, repairs, and OEM parts — engineered for performance-driven ownership.
+                Automate connects you with elite certified mechanics for diagnostics, repairs, and OEM parts — engineered for performance-driven ownership.
               </p>
               <div className="grid grid-cols-2 gap-x-6 gap-y-3 mb-8">
                 {['Fuel System Repair','Air Conditioning','Wheel Alignment','Engine Diagnostics','Brake Calibration','Performance Remap'].map(s => (
@@ -67,7 +67,7 @@ export default function AboutPage() {
               </div>
               <div className="flex flex-wrap gap-4 mb-8">
                 <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5">
-                  <img src="/assets/carhive/team-1.jpg" alt="CEO" className="w-10 h-10 rounded-xl object-cover" />
+                  <img src="/assets/automate/team-1.jpg" alt="CEO" className="w-10 h-10 rounded-xl object-cover" />
                   <div><p className="text-sm font-bold text-white">Ahmed Khalid</p><p className="text-[10px] text-slate-400">Co-Founder</p></div>
                 </div>
                 <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5">
@@ -96,7 +96,7 @@ export default function AboutPage() {
             </motion.div>
             <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.2 }} className="relative hidden lg:block">
               <div className="relative w-full aspect-[4/5] rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
-                <img src="/assets/carhive/mechanic-1.jpg" alt="Mechanic at work" className="w-full h-full object-cover" />
+                <img src="/assets/automate/mechanic-1.jpg" alt="Mechanic at work" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0F0F0F]/70 to-transparent" />
               </div>
               <div className="absolute -bottom-6 -left-6 bg-[#E12F2F] text-white rounded-2xl px-6 py-4 shadow-2xl shadow-red-500/30">
@@ -157,7 +157,7 @@ export default function AboutPage() {
       {/* ── CTA + APPOINTMENT ── */}
       <section className="relative bg-[#0F0F0F] py-24 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <img src="/assets/carhive/mechanic-3.jpg" alt="" className="w-full h-full object-cover opacity-15" />
+          <img src="/assets/automate/mechanic-3.jpg" alt="" className="w-full h-full object-cover opacity-15" />
           <div className="absolute inset-0 bg-[#0F0F0F]/80" />
           <div className="absolute top-0 right-1/4 w-[400px] h-[400px] bg-[radial-gradient(circle,#E12F2F,transparent_65%)] opacity-10 blur-[80px]" />
         </div>
@@ -180,20 +180,62 @@ export default function AboutPage() {
           </motion.div>
           <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
             className="bg-white/[0.04] border border-white/10 rounded-3xl p-8 backdrop-blur-md">
-            <h3 className="font-display text-2xl text-white uppercase mb-6">Book Your Appointment</h3>
-            <form className="space-y-4" onSubmit={e => e.preventDefault()}>
-              <input type="text" placeholder="Your Name" className={iCls} />
-              <input type="tel" placeholder="Phone Number" className={iCls} />
-              <input type="date" className={iCls} />
-              <select className="w-full h-12 px-4 rounded-xl bg-[#1a1a1a] border border-white/[0.08] text-slate-400 text-sm outline-none focus:border-[#E12F2F]/50 transition-colors cursor-pointer">
-                <option value="">Select a Service</option>
-                {['Fuel System Repair','Engine Diagnostics','Brake Calibration','Performance Remap','Air Conditioning','Wheel Alignment'].map(s => <option key={s}>{s}</option>)}
-              </select>
-              <motion.button type="submit" whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
-                className="w-full h-12 bg-[#E12F2F] hover:bg-[#C41F1F] text-white font-bold text-sm rounded-xl transition-colors flex items-center justify-center gap-2">
-                Book Appointment <ArrowRight className="w-4 h-4" />
-              </motion.button>
-            </form>
+            {submitted ? (
+              <div className="bg-brand/10 border border-brand/20 rounded-3xl p-8 text-center text-white">
+                <CheckCircle2 className="w-12 h-12 text-[#E12F2F] mx-auto mb-4 animate-bounce" />
+                <h3 className="font-display text-2xl uppercase mb-2">Booking Requested!</h3>
+                <p className="text-slate-300 text-sm mb-6">
+                  Thank you, {formData.name}. Our team will contact you shortly at {formData.phone} to confirm your appointment.
+                </p>
+                <button
+                  onClick={() => {
+                    setSubmitted(false);
+                    setFormData({ name: '', phone: '', date: '', service: '' });
+                  }}
+                  className="px-6 py-2 border border-white/20 hover:bg-white/5 text-white text-xs font-bold rounded-xl transition-colors"
+                >
+                  Book Another Appointment
+                </button>
+              </div>
+            ) : (
+              <>
+                <h3 className="font-display text-2xl text-white uppercase mb-6">Book Your Appointment</h3>
+                <form className="space-y-4" onSubmit={handleBookingSubmit}>
+                  <input
+                    type="text"
+                    placeholder="Your Name"
+                    value={formData.name}
+                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    className={iCls}
+                  />
+                  <input
+                    type="tel"
+                    placeholder="Phone Number"
+                    value={formData.phone}
+                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                    className={iCls}
+                  />
+                  <input
+                    type="date"
+                    value={formData.date}
+                    onChange={e => setFormData({ ...formData, date: e.target.value })}
+                    className={iCls}
+                  />
+                  <select
+                    value={formData.service}
+                    onChange={e => setFormData({ ...formData, service: e.target.value })}
+                    className="w-full h-12 px-4 rounded-xl bg-[#1a1a1a] border border-white/[0.08] text-slate-400 text-sm outline-none focus:border-[#E12F2F]/50 transition-colors cursor-pointer"
+                  >
+                    <option value="">Select a Service</option>
+                    {['Fuel System Repair','Engine Diagnostics','Brake Calibration','Performance Remap','Air Conditioning','Wheel Alignment'].map(s => <option key={s}>{s}</option>)}
+                  </select>
+                  <motion.button type="submit" whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
+                    className="w-full h-12 bg-[#E12F2F] hover:bg-[#C41F1F] text-white font-bold text-sm rounded-xl transition-colors flex items-center justify-center gap-2">
+                    Book Appointment <ArrowRight className="w-4 h-4" />
+                  </motion.button>
+                </form>
+              </>
+            )}
           </motion.div>
         </div>
       </section>
@@ -205,7 +247,7 @@ export default function AboutPage() {
             <div className="flex items-center justify-center gap-2 text-[#E12F2F] text-[11px] font-black uppercase tracking-widest mb-4">
               <span className="w-5 h-px bg-[#E12F2F]" /><span>Our Working Process</span><span className="w-5 h-px bg-[#E12F2F]" />
             </div>
-            <h2 className="font-display text-4xl sm:text-5xl text-[#0F0F0F] uppercase">How Does We Work</h2>
+            <h2 className="font-display text-4xl sm:text-5xl text-[#0F0F0F] uppercase">How Do We Work</h2>
             <p className="text-slate-500 mt-4 max-w-xl mx-auto text-sm leading-relaxed">
               A streamlined three-step process engineered for zero friction and maximum vehicle performance.
             </p>
@@ -254,7 +296,7 @@ export default function AboutPage() {
             </motion.div>
             <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="relative hidden lg:block">
               <div className="relative w-full aspect-[4/5] rounded-3xl overflow-hidden shadow-xl border border-gray-200">
-                <img src="/assets/carhive/mechanic-1.jpg" alt="Professional mechanic" className="w-full h-full object-cover" />
+                <img src="/assets/automate/mechanic-1.jpg" alt="Professional mechanic" className="w-full h-full object-cover" />
               </div>
               <div className="absolute -bottom-4 -right-4 w-full h-full rounded-3xl border-2 border-[#E12F2F]/20 pointer-events-none -z-10" />
             </motion.div>

@@ -12,7 +12,7 @@ export function Logo({ showText = true, light = false, className = '' }: LogoPro
   return (
     <Link href="/" className={`flex items-center gap-2.5 select-none group cursor-pointer ${className}`}>
       <img
-        src="/assets/carhive/logo-mark.png"
+        src="/assets/automate/logo-mark.png"
         alt="Automate"
         width={44}
         height={26}

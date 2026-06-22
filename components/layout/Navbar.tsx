@@ -151,12 +151,14 @@ export function Navbar() {
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-7 text-sm font-semibold text-slate-600 transition-colors font-sans select-none">
               
-              {/* 1. HOME LINK (ACTIVE DESIGN MATCHING SPEC) */}
+              {/* 1. HOME LINK (CONDITIONALLY ACTIVE) */}
               <div className="relative flex flex-col items-center">
-                <Link href="/" className="text-[#E62424] font-bold pb-1">
+                <Link href="/" className={`pb-1 font-semibold transition-colors ${pathname === '/' ? 'text-[#E62424] font-bold' : 'hover:text-slate-900'}`}>
                   Home
                 </Link>
-                <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#E62424] rounded-full" />
+                {pathname === '/' && (
+                  <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#E62424] rounded-full" />
+                )}
               </div>
 
               {/* 2. MARKETPLACE GATEWAY LINK */}

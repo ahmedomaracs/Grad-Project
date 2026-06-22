@@ -1,0 +1,13 @@
+# Automate Platform
+# https://automate.jo
+
+User-agent: *
+Allow: /
+
+# Block internal/dashboard routes from indexing
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /profile/
+Disallow: /api/
+
+Sitemap: https://automate.jo/sitemap.xml

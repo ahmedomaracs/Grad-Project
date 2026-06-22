@@ -24,7 +24,7 @@ export function Hero() {
       {/* Background mechanic image + ambient red glow */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <img
-          src="/assets/carhive/mechanic-1.jpg"
+          src="/assets/automate/mechanic-1.jpg"
           alt=""
           className="absolute inset-0 w-full h-full object-cover opacity-10"
         />
@@ -89,7 +89,7 @@ export function Hero() {
           >
             <div className="absolute inset-0 bg-brand/20 blur-[100px] rounded-full pointer-events-none" />
             <img
-              src="/assets/carhive/car.png"
+              src="/assets/automate/car.png"
               alt="Premium car ready for service"
               className="relative w-full h-auto drop-shadow-2xl"
             />

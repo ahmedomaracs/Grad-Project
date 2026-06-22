@@ -103,7 +103,6 @@ function SigninPageContent() {
 
   const handleResetSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Target recovery email payload:', { email: recoveryEmail });
     setResetSent(true);
   };
 

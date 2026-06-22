@@ -47,7 +47,7 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-14">
         <div className="relative overflow-hidden rounded-3xl border border-white/5 bg-ink-soft">
           <img
-            src="/assets/carhive/mechanic-2.jpg"
+            src="/assets/automate/mechanic-2.jpg"
             alt=""
             className="absolute inset-y-0 right-0 w-1/2 h-full object-cover opacity-20"
           />
@@ -155,11 +155,11 @@ export function Footer() {
             <ul className="space-y-4 text-sm text-muted-light/80">
               <li className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-brand flex-shrink-0" />
-                <a href="mailto:domain@example.com" className="hover:text-white transition-colors">domain@example.com</a>
+                <a href="mailto:support@automate.jo" className="hover:text-white transition-colors">support@automate.jo</a>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-4 h-4 text-brand flex-shrink-0" />
-                <a href="tel:+12345678900" className="hover:text-white transition-colors">+12 345 678 900</a>
+                <a href="tel:+96279876543" className="hover:text-white transition-colors">+962 7 9876 543</a>
               </li>
               <li className="flex items-center gap-3">
                 <Clock className="w-4 h-4 text-brand flex-shrink-0" />
@@ -167,7 +167,7 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-3">
                 <MapPin className="w-4 h-4 text-brand flex-shrink-0" />
-                <span>544, New York City, USA</span>
+                <span>Amman, Jordan</span>
               </li>
             </ul>
           </div>

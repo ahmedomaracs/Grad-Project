@@ -77,11 +77,9 @@ export default function BookingFeaturePage() {
         throw new Error(responseData.message || 'Server ingestion rejection.');
       }
     } catch (error) {
-      // Client-side fail-safe simulation mode for offline/independent staging checks
-      console.warn("API Node direct map bypassed. Entering staging execution simulation.");
       setSubmissionStatus({
-        success: true,
-        message: `Staging Simulation Active: Booking broadcasted with ${selectedMechanic.name} at ${selectedTime}!`
+        success: false,
+        message: 'Unable to schedule your appointment right now. Please check your connection and try again.'
       });
     } finally {
       setLoading(false);
