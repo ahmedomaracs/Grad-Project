@@ -104,9 +104,9 @@ export function CartDrawer() {
                     </div>
                   </motion.div>
                 ) : (
-                  items.map((item) => (
+                  items.map((item, idx) => (
                     <motion.div
-                      key={item.product.id}
+                      key={`${item.product.id}-${idx}`}
                       layout
                       initial={{ opacity: 0, x: 40 }}
                       animate={{ opacity: 1, x: 0 }}

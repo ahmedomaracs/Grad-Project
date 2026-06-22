@@ -35,8 +35,8 @@ import { Button } from '../../components/ui/Button';
 const vehicleSchema = z.object({
   brand: z.string().min(2, 'Make / Brand is required (min 2 chars)'),
   model: z.string().min(1, 'Model name is required'),
-  year: z.any(),
-  mileage: z.any(),
+  year: z.coerce.number().int().min(1900, 'Year must be after 1900').max(new Date().getFullYear() + 2, 'Invalid year'),
+  mileage: z.coerce.number().min(0, 'Mileage must be 0 or more'),
 });
 
 type VehicleFormValues = z.infer<typeof vehicleSchema>;
@@ -44,8 +44,8 @@ type VehicleFormValues = z.infer<typeof vehicleSchema>;
 // Booking validation schema
 const bookingSchema = z.object({
   service: z.string().min(1, 'Service type is required'),
-  date: z.any(),
-  time: z.any(),
+  date: z.string().min(1, 'Date is required'),
+  time: z.string().min(1, 'Time is required'),
 });
 
 type BookingFormValues = z.infer<typeof bookingSchema>;
@@ -83,7 +83,7 @@ function DashboardContent() {
     reset: resetVehicle,
     formState: { errors: vehicleErrors }
   } = useForm<VehicleFormValues>({
-    resolver: zodResolver(vehicleSchema),
+    resolver: zodResolver(vehicleSchema) as any,
     defaultValues: {
       brand: '',
       model: '',

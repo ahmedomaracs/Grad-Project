@@ -29,6 +29,18 @@ const STATS = [
 const iCls = 'w-full h-12 px-4 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white text-sm placeholder-slate-500 outline-none focus:border-[#E12F2F]/50 transition-colors';
 
 export default function AboutPage() {
+  const [submitted, setSubmitted] = useState(false);
+  const [formData, setFormData] = useState({ name: '', phone: '', date: '', service: '' });
+
+  const handleBookingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.phone || !formData.date || !formData.service) {
+      alert('Please fill in all fields.');
+      return;
+    }
+    setSubmitted(true);
+  };
+
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }); }, []);
 
   return (

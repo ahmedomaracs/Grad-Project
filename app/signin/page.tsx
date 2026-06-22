@@ -90,13 +90,19 @@ function SigninPageContent() {
           }
         }, 1500);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setIsLoading(false);
-      // Handle error gracefully via toast
+      let message = 'Invalid email or password. Please try again.';
+      if (error && typeof error === 'object' && 'response' in error) {
+        const errObj = error as { response?: { data?: { message?: string } } };
+        if (errObj.response?.data?.message) {
+          message = errObj.response.data.message;
+        }
+      }
       addToast({ 
         type: 'error', 
         title: 'Authentication Failed', 
-        message: error.response?.data?.message || 'Invalid email or password. Please try again.' 
+        message 
       });
     }
   };

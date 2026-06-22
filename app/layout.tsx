@@ -1,20 +1,6 @@
 import type { Metadata } from 'next';
-import { Inter, Anton } from 'next/font/google';
 import './globals.css';
 import { ClientProviders } from '../components/ClientProviders';
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-});
-
-const anton = Anton({
-  subsets: ['latin'],
-  weight: '400',
-  variable: '--font-anton',
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
   title: {
@@ -51,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${anton.variable}`} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Inline script to prevent dark-mode flash */}
         <script

@@ -1,4 +1,10 @@
 import React from 'react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Home',
+  description: 'Manage your vehicles, book certified mechanics, and shop genuine automotive parts — all in one luxury platform.',
+};
 import { Navbar } from '../components/layout/Navbar';
 import { Hero } from '../components/sections/Hero';
 import { Statistics } from '../components/sections/Statistics';
