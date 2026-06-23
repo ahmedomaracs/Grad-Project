@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useCallback, Suspense } from 'react';
+import React, { useState, useRef, useCallback, Suspense, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -15,6 +15,9 @@ import {
   Shield,
 } from 'lucide-react';
 import { WorkspaceLayout } from '@/components/dashboard/WorkspaceLayout';
+import { useAuthStore } from '@/store/authStore';
+import { useToastStore } from '@/store/toastStore';
+import { garageApi } from '@/lib/services/garageApi';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -62,7 +65,6 @@ function MyGarageContent() {
   const router = useRouter();
 
   /* -- state -- */
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -75,12 +77,66 @@ function MyGarageContent() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
 
+  const [files, setFiles] = useState<File[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  /* -- store -- */
+  const { vehicles: storeVehicles, setVehicles } = useAuthStore();
+  const addToast = useToastStore((state) => state.addToast);
 
   /* -- derived -- */
   const availableModels = make ? VEHICLE_MAKES[make] || [] : [];
 
+  const vehicles = storeVehicles.map(v => ({
+    id: v.id,
+    make: v.make || v.brand,
+    model: v.model,
+    year: v.year,
+    plateCode: v.plateCode || '',
+    plateNumber: v.plateNumber || v.plate || '',
+    mileage: v.mileage,
+    images: v.images || (v.image ? [v.image] : []),
+  }));
+
   /* -- actions -- */
+  const fetchVehicles = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const res = await garageApi.getVehicles();
+      const mapped = res.data.map(v => ({
+        id: v.id,
+        brand: v.make,
+        make: v.make,
+        model: v.model,
+        year: v.year,
+        mileage: v.mileage,
+        status: v.status || 'Perfect',
+        image: v.images?.[0] || '',
+        images: v.images || [],
+        plate: `${v.plateCode || ''} ${v.plateNumber || ''}`.trim(),
+        plateCode: v.plateCode,
+        plateNumber: v.plateNumber,
+      }));
+      setVehicles(mapped);
+    } catch (err: any) {
+      console.error(err);
+      addToast({
+        type: 'error',
+        title: 'Failed to fetch vehicles',
+        message: err.response?.data?.message || 'Could not connect to the server.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [setVehicles, addToast]);
+
+  useEffect(() => {
+    fetchVehicles();
+  }, [fetchVehicles]);
+
   const openAdd = () => {
     setEditingId(null);
     setMake('');
@@ -90,6 +146,7 @@ function MyGarageContent() {
     setPlateCode('');
     setPlateNumber('');
     setImagePreviews([]);
+    setFiles([]);
     setIsModalOpen(true);
   };
 
@@ -102,6 +159,7 @@ function MyGarageContent() {
     setPlateCode(v.plateCode);
     setPlateNumber(v.plateNumber);
     setImagePreviews(v.images);
+    setFiles([]);
     setIsModalOpen(true);
   };
 
@@ -109,13 +167,18 @@ function MyGarageContent() {
 
   const handleFiles = useCallback((fileList: FileList | null) => {
     if (!fileList) return;
-    const newUrls = Array.from(fileList)
-      .filter((f) => f.type.startsWith('image/'))
-      .map((f) => URL.createObjectURL(f));
+    const newFiles = Array.from(fileList).filter((f) => f.type.startsWith('image/'));
+    setFiles((prev) => [...prev, ...newFiles]);
+    const newUrls = newFiles.map((f) => URL.createObjectURL(f));
     setImagePreviews((prev) => [...prev, ...newUrls]);
   }, []);
 
   const removeImage = (idx: number) => {
+    const previewToRemove = imagePreviews[idx];
+    if (previewToRemove.startsWith('blob:')) {
+      const blobIndex = imagePreviews.slice(0, idx).filter(url => url.startsWith('blob:')).length;
+      setFiles((prev) => prev.filter((_, i) => i !== blobIndex));
+    }
     setImagePreviews((prev) => prev.filter((_, i) => i !== idx));
   };
 
@@ -132,33 +195,100 @@ function MyGarageContent() {
     handleFiles(e.dataTransfer.files);
   };
 
-  const saveVehicle = () => {
-    if (!make || !model || !year || !mileage) return;
-    const payload: Vehicle = {
-      id: editingId ?? uid(),
-      make,
-      model,
-      year: Number(year),
-      plateCode: plateCode.toUpperCase(),
-      plateNumber,
-      mileage: Number(mileage),
-      images: imagePreviews,
-    };
-    setVehicles((prev) => {
-      if (editingId) {
-        return prev.map((v) => (v.id === editingId ? payload : v));
-      }
-      return [...prev, payload];
+  const convertToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
     });
-    setIsModalOpen(false);
   };
 
-  const deleteVehicle = (id: string) => {
-    setVehicles((prev) => prev.filter((v) => v.id !== id));
+  const saveVehicle = async () => {
+    if (!make || !model || !year || !mileage) return;
+    setIsSaving(true);
+    try {
+      const uploadedImages = await Promise.all(files.map(f => convertToBase64(f)));
+      const existingImages = imagePreviews.filter(url => !url.startsWith('blob:'));
+      const finalImages = [...existingImages, ...uploadedImages];
+
+      const payload = {
+        make,
+        model,
+        year: Number(year),
+        plateCode: plateCode.toUpperCase(),
+        plateNumber,
+        mileage: Number(mileage),
+        images: finalImages,
+      };
+
+      if (editingId) {
+        const res = await garageApi.updateVehicle(editingId, payload);
+        const mapped = {
+          id: res.data.id,
+          brand: res.data.make,
+          make: res.data.make,
+          model: res.data.model,
+          year: res.data.year,
+          mileage: res.data.mileage,
+          status: res.data.status || 'Perfect',
+          image: res.data.images?.[0] || '',
+          images: res.data.images || [],
+          plate: `${res.data.plateCode || ''} ${res.data.plateNumber || ''}`.trim(),
+          plateCode: res.data.plateCode,
+          plateNumber: res.data.plateNumber,
+        };
+        setVehicles(storeVehicles.map(v => v.id === editingId ? mapped : v));
+        addToast({ type: 'success', title: 'Vehicle Saved', message: `${make} ${model} updated successfully.` });
+      } else {
+        const res = await garageApi.addVehicle(payload);
+        const mapped = {
+          id: res.data.id,
+          brand: res.data.make,
+          make: res.data.make,
+          model: res.data.model,
+          year: res.data.year,
+          mileage: res.data.mileage,
+          status: res.data.status || 'Perfect',
+          image: res.data.images?.[0] || '',
+          images: res.data.images || [],
+          plate: `${res.data.plateCode || ''} ${res.data.plateNumber || ''}`.trim(),
+          plateCode: res.data.plateCode,
+          plateNumber: res.data.plateNumber,
+        };
+        setVehicles([...storeVehicles, mapped]);
+        addToast({ type: 'success', title: 'Vehicle Added', message: `${make} ${model} added to your garage.` });
+      }
+      setIsModalOpen(false);
+    } catch (err: any) {
+      console.error(err);
+      addToast({
+        type: 'error',
+        title: 'Failed to save vehicle',
+        message: err.response?.data?.message || 'Error occurred while saving vehicle data.',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const deleteVehicle = async (id: string) => {
+    try {
+      await garageApi.deleteVehicle(id);
+      setVehicles(storeVehicles.filter((v) => v.id !== id));
+      addToast({ type: 'success', title: 'Vehicle Deleted', message: 'Vehicle removed from your garage.' });
+    } catch (err: any) {
+      console.error(err);
+      addToast({
+        type: 'error',
+        title: 'Failed to delete vehicle',
+        message: err.response?.data?.message || 'Could not delete vehicle from database.',
+      });
+    }
   };
 
   const isFormValid =
-    make && model && year && Number(year) > 1900 && Number(year) <= new Date().getFullYear() + 1 && mileage !== '';
+    make && model && year && Number(year) >= 1900 && Number(year) <= new Date().getFullYear() + 1 && mileage !== '';
 
   /* ---------------------------------------------------------------- */
   /*  Empty State                                                       */
@@ -292,7 +422,11 @@ function MyGarageContent() {
       </div>
 
       {/* Content */}
-      {vehicles.length === 0 ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center py-32">
+          <div className="w-10 h-10 border-[3px] border-slate-200 border-t-[#E12F2F] rounded-full animate-spin" />
+        </div>
+      ) : vehicles.length === 0 ? (
         <EmptyState />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -513,10 +647,19 @@ function MyGarageContent() {
                 </button>
                 <button
                   onClick={saveVehicle}
-                  disabled={!isFormValid}
-                  className="flex-1 min-h-[48px] py-3 rounded-xl bg-[#E12F2F] hover:bg-[#C41F1F] text-white font-extrabold text-sm shadow-md shadow-red-500/10 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed outline-none border border-[#E12F2F]/10 cursor-pointer"
+                  disabled={!isFormValid || isSaving}
+                  className="flex-1 min-h-[48px] py-3 rounded-xl bg-[#E12F2F] hover:bg-[#C41F1F] text-white font-extrabold text-sm shadow-md shadow-red-500/10 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed outline-none border border-[#E12F2F]/10 cursor-pointer flex items-center justify-center gap-2"
                 >
-                  {editingId ? 'Save Changes' : 'Add Vehicle'}
+                  {isSaving ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : editingId ? (
+                    'Save Changes'
+                  ) : (
+                    'Add Vehicle'
+                  )}
                 </button>
               </div>
             </motion.div>

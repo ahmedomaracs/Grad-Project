@@ -37,6 +37,11 @@ export interface Vehicle {
   plate?: string;
   color?: string;
   fuelType?: string;
+  // Extended fields for my-garage compatibility
+  make?: string;
+  plateCode?: string;
+  plateNumber?: string;
+  images?: string[];
 }
 
 export interface Mechanic {
@@ -147,6 +152,7 @@ interface AuthStore {
   login: (email: string, name?: string, isNewUser?: boolean) => void;
   logout: () => void;
   updateProfile: (profile: Partial<UserProfile>) => void;
+  setVehicles: (vehicles: Vehicle[]) => void;
   addVehicle: (vehicle: Omit<Vehicle, 'id'>) => void;
   updateVehicle: (id: string, vehicle: Partial<Vehicle>) => void;
   removeVehicle: (id: string) => void;
@@ -472,6 +478,10 @@ export const useAuthStore = create<AuthStore>()(
         set((state) => ({
           user: state.user ? { ...state.user, ...profile } : null,
         }));
+      },
+
+      setVehicles: (vehicles) => {
+        set({ vehicles });
       },
 
       addVehicle: (vehicle) => {
