@@ -201,9 +201,9 @@ export function ProductCard({ product, index }: ProductCardProps) {
               <p className="text-[10px] font-bold text-[#E12F2F] uppercase tracking-widest mb-1">{product.brand}</p>
               <h4 className="text-lg font-bold text-slate-900 leading-tight mb-2 line-clamp-2">{product.name}</h4>
               <div className="flex items-center gap-2">
-                <span className="text-xl font-extrabold text-slate-900">${product.price.toFixed(2)}</span>
+                <span className="text-xl font-extrabold text-slate-900">EGP {product.price.toFixed(2)}</span>
                 {product.originalPrice && (
-                  <span className="text-sm text-slate-400 line-through">${product.originalPrice.toFixed(2)}</span>
+                  <span className="text-sm text-slate-400 line-through">EGP {product.originalPrice.toFixed(2)}</span>
                 )}
               </div>
             </div>
@@ -213,18 +213,29 @@ export function ProductCard({ product, index }: ProductCardProps) {
           <div className="bg-slate-50 rounded-2xl border border-slate-100 p-4 mb-6">
             <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Technical Indices</h5>
             <div className="space-y-2">
-              <div className="flex justify-between items-center py-1 border-b border-slate-100/50">
-                <span className="text-xs text-slate-500 font-medium">Part MPN Code</span>
-                <span className="text-xs text-slate-900 font-bold font-mono">MPN-{product.id.toString().padStart(4, '0')}</span>
-              </div>
-              <div className="flex justify-between items-center py-1 border-b border-slate-100/50">
-                <span className="text-xs text-slate-500 font-medium">OEM Reference Cross-Check Key</span>
-                <span className="text-xs text-slate-900 font-bold font-mono">34-11-6-792-{product.id.toString().padStart(3, '0')}</span>
-              </div>
-              <div className="flex justify-between items-center py-1">
-                <span className="text-xs text-slate-500 font-medium">Material Type</span>
-                <span className="text-xs text-slate-900 font-bold">High-Carbon Steel</span>
-              </div>
+              {product.characteristics ? (
+                product.characteristics.technicalSpecs.map((spec, i) => (
+                  <div key={i} className="flex justify-between items-center py-1 border-b border-slate-100/50 last:border-0">
+                    <span className="text-xs text-slate-500 font-medium">{spec.label}</span>
+                    <span className="text-xs text-slate-900 font-bold">{spec.value}</span>
+                  </div>
+                ))
+              ) : (
+                <>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100/50">
+                    <span className="text-xs text-slate-500 font-medium">Part MPN Code</span>
+                    <span className="text-xs text-slate-900 font-bold font-mono">MPN-{product.id.toString().padStart(4, '0')}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100/50">
+                    <span className="text-xs text-slate-500 font-medium">OEM Reference Cross-Check Key</span>
+                    <span className="text-xs text-slate-900 font-bold font-mono">34-11-6-792-{product.id.toString().padStart(3, '0')}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-xs text-slate-500 font-medium">Material Type</span>
+                    <span className="text-xs text-slate-900 font-bold">Standard</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

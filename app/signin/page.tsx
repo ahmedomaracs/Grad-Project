@@ -13,7 +13,7 @@ import { Button } from '../../components/ui/Button';
 import { useAuthStore } from '../../store/authStore';
 import { useToastStore } from '../../store/toastStore';
 import { Logo } from '../../components/ui/Logo';
-import axios from 'axios';
+import { authApi } from '../../lib/services/authApi';
 
 // Define Zod signin schema
 const signinSchema = z.object({
@@ -55,8 +55,8 @@ function SigninPageContent() {
     setIsLoading(true);
     
     try {
-      // Connect to the backend API via Axios
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/auth/login`, {
+      // Connect to the backend API via centralized authApi
+      const response = await authApi.login({
         email: data.email,
         password: data.password,
       });

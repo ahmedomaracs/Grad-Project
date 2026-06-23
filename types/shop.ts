@@ -10,8 +10,13 @@ export interface Product {
   image: string;
   inStock: boolean;
   badge?: string;
+  discount?: string;
   description: string;
   tags: string[];
+  characteristics?: {
+    category: string;
+    technicalSpecs: { label: string; value: string }[];
+  };
 }
 
 export type Category =

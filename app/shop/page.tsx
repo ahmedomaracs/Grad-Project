@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ShoppingBag, Sparkles, TrendingUp, Package, Star, Box, Terminal } from 'lucide-react';
 import { ShopNavbar } from '../../components/shop/ShopNavbar';
@@ -28,35 +29,73 @@ const STATS = [
   { icon: Sparkles, label: 'Brands Listed', value: '120+' },
 ];
 
-const ALL_PRODUCTS = [
-  { id: 1, name: "Brembo Venting Brake Rotor (Front)", brand: "Brembo", category: "Brakes", price: 145, oldPrice: 193, originalPrice: 193, discount: "-25%", badge: "Best Seller", tags: ["Brakes", "Performance"], rating: 4.9, reviewCount: 154, inStock: true, image: "/shop/ShopImages/brembobrakerotor.webp" },
-  { id: 2, name: "Brembo Premium Ceramic Brake Pads Set", brand: "Brembo", category: "Brakes", price: 89, oldPrice: 125, originalPrice: 125, discount: "-29%", badge: "New", tags: ["Brakes", "Ceramic"], rating: 4.8, reviewCount: 89, inStock: true, image: "/shop/ShopImages/Ceramicpads.webp" },
-  { id: 3, name: "Bosch Front Brake Kit", brand: "Bosch", category: "Brakes", price: 110, originalPrice: 130, discount: "-15%", tags: ["Brakes", "Quiet"], rating: 4.7, reviewCount: 201, inStock: true, image: "/shop/ShopImages/FrontBrakeKit.jpeg" },
-  { id: 4, name: "Brembo Sport DOT 4 Brake Fluid (1L)", brand: "Brembo", category: "Brakes", price: 65, tags: ["Brakes", "Fluid"], rating: 4.6, reviewCount: 320, inStock: true, image: "/shop/ShopImages/brakefluid.webp" },
-  { id: 5, name: "Bosch Front Disc", brand: "Bosch", category: "Brakes", price: 18, tags: ["Brakes", "Disc"], rating: 4.9, reviewCount: 450, inStock: true, image: "/shop/ShopImages/BoshForntdisc.jpeg" },
-  { id: 6, name: "K&N Cold Air Intake Power Kit", brand: "K&N", category: "Engine", price: 349, originalPrice: 388, discount: "-10%", tags: ["Performance", "Intake"], rating: 4.8, reviewCount: 120, inStock: true, image: "/shop/ShopImages/AirIntake.jpeg" },
-  { id: 7, name: "Iridium Spark Plugs", brand: "NGK", category: "Engine", price: 28, tags: ["Spark", "Engine"], rating: 4.5, reviewCount: 610, inStock: true, image: "/shop/ShopImages/images.jpeg" },
-  { id: 8, name: "Auto Accessories Bundle", brand: "Automate", category: "Accessories", price: 24, oldPrice: 30, originalPrice: 30, discount: "-19%", tags: ["Accessories", "Bundle"], rating: 4.9, reviewCount: 85, inStock: true, image: "/shop/ShopImages/shopping.webp" }
-];
+function ShopContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
-export default function ShopPage() {
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeFilterTab, setActiveFilterTab] = useState<'search' | 'vehicle' | 'vin'>('search');
   
+  // Read initial values from URL
+  const initialCategory = searchParams.get('category') || 'All';
+  const initialVehicle = searchParams.get('vehicle') || "2018 BMW 330i";
+
   // Active filter states
-  const [selectedCategory, setSelectedCategory] = useState<string>('All'); // Matches lower category pills
-  const [selectedBrands, setSelectedBrands] = useState<string[]>(['Brembo']); // Default 'Brembo' active
-  const [maxPrice, setMaxPrice] = useState<number>(1000); // Slider element configuration
-  const [vehicleFitment, setVehicleFitment] = useState<string | null>("2018 BMW 330i"); // Interactive crumb layout
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>(['Brembo']);
+  const [maxPrice, setMaxPrice] = useState<number>(100000);
+  const [vehicleFitment, setVehicleFitment] = useState<string | null>(searchParams.get('vehicle') !== null ? searchParams.get('vehicle') : "2018 BMW 330i");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [analysisState, setAnalysisState] = useState('scanning'); // 'scanning' | 'analyzing' | 'matched'
+  
+  const [analysisState, setAnalysisState] = useState('scanning');
   const [matchedAsset, setMatchedAsset] = useState({ name: '', icon: '' });
 
+  // Sync state changes to URL
   useEffect(() => {
-    // Simulate high-speed workspace structural code analysis on mount for the demo video
+    const params = new URLSearchParams(searchParams.toString());
+    
+    let changed = false;
+    if (selectedCategory !== 'All') {
+      if (params.get('category') !== selectedCategory) {
+        params.set('category', selectedCategory);
+        changed = true;
+      }
+    } else {
+      if (params.has('category')) {
+        params.delete('category');
+        changed = true;
+      }
+    }
+    
+    if (vehicleFitment) {
+      if (params.get('vehicle') !== vehicleFitment) {
+        params.set('vehicle', vehicleFitment);
+        changed = true;
+      }
+    } else {
+      if (params.has('vehicle')) {
+        params.delete('vehicle');
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      router.replace(`${pathname}?${params.toString()}`);
+    }
+  }, [selectedCategory, vehicleFitment, pathname, router, searchParams]);
+
+  useEffect(() => {
+    const hasAnimated = sessionStorage.getItem('diagnosticsAnimated');
+    if (hasAnimated) {
+      setAnalysisState('matched');
+      setMatchedAsset({ name: "Precision Hardware Grid Vector Match", icon: "Box" });
+      return;
+    }
+
     const timer1 = setTimeout(() => setAnalysisState('analyzing'), 800);
     const timer2 = setTimeout(() => {
       setAnalysisState('matched');
@@ -64,6 +103,7 @@ export default function ShopPage() {
         name: "Precision Hardware Grid Vector Match",
         icon: "Box"
       });
+      sessionStorage.setItem('diagnosticsAnimated', 'true');
     }, 2200);
 
     return () => {
@@ -72,13 +112,11 @@ export default function ShopPage() {
     };
   }, []);
 
-  // Simulate loading
   useEffect(() => {
     const t = setTimeout(() => setIsLoading(false), 900);
     return () => clearTimeout(t);
   }, []);
 
-  // Scroll listener for hero banner
   useEffect(() => {
     let ticking = false;
 
@@ -97,13 +135,12 @@ export default function ShopPage() {
   }, []);
 
   const filteredProducts = useMemo(() => {
-    return ALL_PRODUCTS.filter(product => {
+    return PRODUCTS.filter(product => {
       const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
       const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(product.brand);
       const matchesPrice = product.price <= maxPrice;
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
       
-      // If fitment filter active, show only relevant brakes elements for the simulated demo view
       const matchesFitment = !vehicleFitment || product.category === "Brakes";
 
       return matchesCategory && matchesBrand && matchesPrice && matchesSearch && matchesFitment;
@@ -403,14 +440,14 @@ export default function ShopPage() {
                 <input 
                   type="range" 
                   min="0" 
-                  max="1000" 
+                  max="100000" 
                   value={maxPrice} 
                   onChange={(e) => setMaxPrice(Number(e.target.value))}
                   className="w-full h-1 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#E62424]"
                 />
                 <div className="flex justify-between text-xs font-bold text-slate-700 font-mono mt-2">
-                  <span>$0</span>
-                  <span>Max: ${maxPrice}+</span>
+                  <span>EGP 0</span>
+                  <span>Max: EGP {maxPrice.toLocaleString()}+</span>
                 </div>
               </div>
 
@@ -519,5 +556,13 @@ export default function ShopPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center font-black text-slate-400">INITIALIZING CATALOG...</div>}>
+      <ShopContent />
+    </Suspense>
   );
 }

@@ -13,6 +13,7 @@ import { Button } from '../../components/ui/Button';
 import { useAuthStore } from '../../store/authStore';
 import { useToastStore } from '../../store/toastStore';
 import { getRoleDashboardPath } from '../../lib/navigation';
+import { authApi } from '../../lib/services/authApi';
 
 // Define Zod signup schema
 const signupSchema = z.object({
@@ -79,20 +80,45 @@ function SignupPageContent() {
 
   const onSubmit = async (data: SignupFormValues) => {
     setIsLoading(true);
-    // Simulate API registration delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsLoading(false);
+    
+    // Split full name into firstName and lastName
+    const nameParts = data.name.trim().split(/\s+/);
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+    const displayName = data.name;
 
-    setSuccess(true);
-    loginUser(data.email, data.name, true);
+    try {
+      await authApi.signup({
+        firstName,
+        lastName,
+        displayName,
+        email: data.email,
+        password: data.password,
+        phoneNumber: data.phone,
+      });
 
-    addToast({ type: 'success', title: 'Account Created!', message: `Welcome to Automate.` });
+      setIsLoading(false);
+      setSuccess(true);
+      loginUser(data.email, data.name, true);
 
-    // Role-aware redirect (check for callbackUrl parameter first, default to Client dashboard)
-    const dashboardPath = callbackUrl || getRoleDashboardPath('Client');
-    setTimeout(() => {
-      router.push(dashboardPath);
-    }, 1800);
+      addToast({ type: 'success', title: 'Account Created!', message: `Welcome to Automate.` });
+
+      // Role-aware redirect (check for callbackUrl parameter first, default to Client dashboard)
+      const dashboardPath = callbackUrl || getRoleDashboardPath('Client');
+      setTimeout(() => {
+        router.push(dashboardPath);
+      }, 1800);
+    } catch (error: any) {
+      setIsLoading(false);
+      let message = 'Registration failed. Please try again.';
+      if (error && typeof error === 'object' && 'response' in error) {
+        const errObj = error as { response?: { data?: { message?: string } } };
+        if (errObj.response?.data?.message) {
+          message = errObj.response.data.message;
+        }
+      }
+      addToast({ type: 'error', title: 'Registration Failed', message });
+    }
   };
 
   const handleTermsClick = (e: React.MouseEvent) => {

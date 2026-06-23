@@ -1,85 +1,128 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '../../store/authStore';
+import { Calendar as CalendarIcon, Car, Clock, Wrench, ChevronLeft, ChevronRight } from 'lucide-react';
 
-// --- TYPE SPECIFICATIONS FOR POSTMAN SCHEMA ALIGNMENT ---
-interface Mechanic {
-  id: string;
-  name: string;
-  specialty: string;
-  rating: number;
-  estimatedTime: string;
-  baseFee: number;
+const DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+function isSameDay(d1: Date, d2: Date) {
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  );
+}
+
+function isPastDate(date: Date) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return date < today;
+}
+
+function getCalendarDays(viewDate: Date) {
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const firstDayOfMonth = new Date(year, month, 1);
+  const startDay = firstDayOfMonth.getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const days: (Date | null)[] = [];
+  for (let i = 0; i < startDay; i++) days.push(null);
+  for (let d = 1; d <= daysInMonth; d++) days.push(new Date(year, month, d));
+  return days;
 }
 
 export default function BookingFeaturePage() {
-  // --- STATE MOTORS ---
-  const [mechanics, setMechanics] = useState<Mechanic[]>([]);
-  const [selectedMechanic, setSelectedMechanic] = useState<Mechanic | null>(null);
+  const router = useRouter();
+  const { user, vehicles, mechanics: storeMechanics, bookMechanic } = useAuthStore();
+  
+  // Dynamically map mechanics and convert string pricing (e.g. '$$$') to EGP base fees
+  const mechanics = storeMechanics.map(m => ({
+    id: m.id,
+    name: m.name,
+    specialty: m.specialties[0] || "General Repair",
+    rating: m.rating,
+    estimatedTime: "45-60 mins",
+    baseFee: m.price.length * 2500, // $$ = 5000 EGP
+    avatar: m.avatar,
+    garageName: m.garageName
+  }));
+
+  // --- STATE ---
+  const [selectedMechanic, setSelectedMechanic] = useState<typeof mechanics[0] | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
+  const [selectedVehicle, setSelectedVehicle] = useState<string>('');
   const [issueDescription, setIssueDescription] = useState<string>('');
   
-  // Interface Flow Pipeline Flags
+  // Custom Calendar State
+  const [viewDate, setViewDate] = useState(new Date());
+  const [selectedDateObj, setSelectedDateObj] = useState<Date | null>(null);
+
+  const calendarDays = useMemo(() => getCalendarDays(viewDate), [viewDate]);
+  const monthLabel = viewDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  const prevMonth = () => setViewDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1));
+  const nextMonth = () => setViewDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
+
+  const handleDateSelect = (date: Date) => {
+    if (isPastDate(date)) return;
+    setSelectedDateObj(date);
+    setSelectedDate(date.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' }));
+  };
+
+  // Pipeline Flags
   const [loading, setLoading] = useState<boolean>(false);
   const [submissionStatus, setSubmissionStatus] = useState<{ success: boolean; message: string } | null>(null);
 
-  // --- MOCK CONSTANTS TO FEED THE PIPELINE IMMEDIATELY ---
   const availableSlots = ["09:00 AM", "11:30 AM", "02:00 PM", "04:30 PM"];
-  const initialMechanicDataset: Mechanic[] = [
-    { id: "MEC-01", name: "Alex Rivera", specialty: "Brake & Suspension Certified", rating: 4.9, estimatedTime: "45-60 mins", baseFee: 50 },
-    { id: "MEC-02", name: "Marcus Chen", specialty: "Engine Diagnostics & Tuning", rating: 4.8, estimatedTime: "60-90 mins", baseFee: 85 },
-    { id: "MEC-03", name: "Sarah Jenkins", specialty: "Electrical Systems Specialist", rating: 5.0, estimatedTime: "30-50 mins", baseFee: 70 }
-  ];
 
-  // Load available dispatch personnel
+  // Prefill default vehicle if exists
   useEffect(() => {
-    setMechanics(initialMechanicDataset);
-  }, []);
+    if (vehicles.length > 0 && !selectedVehicle) {
+      setSelectedVehicle(vehicles[0].id);
+    }
+  }, [vehicles]);
 
-  // --- FRICTIONLESS SUBMISSION GATEWAY (Aligning with POST /appointments) ---
   const handleFrictionlessSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedMechanic || !selectedTime) return;
+    if (!selectedMechanic || !selectedDate || !selectedTime || !selectedVehicle) return;
 
     setLoading(true);
     setSubmissionStatus(null);
 
-    // Formatted payload blueprint explicitly structured for your Postman testing parameters
-    const appointmentPayload = {
-      mechanicId: selectedMechanic.id,
-      mechanicName: selectedMechanic.name,
-      timeSlot: selectedTime,
-      notes: issueDescription || "Standard system diagnostic run requested.",
-      timestamp: new Date().toISOString()
-    };
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
     try {
-      // Points exactly to your local/production API gateway route matching your architecture specs
-      const response = await fetch('/api/appointments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(appointmentPayload),
+      const vehicleObj = vehicles.find(v => v.id === selectedVehicle);
+      const vehicleName = vehicleObj ? `${vehicleObj.year} ${vehicleObj.brand} ${vehicleObj.model}` : selectedVehicle;
+      
+      // Use the global store action
+      bookMechanic(
+        selectedMechanic.id,
+        selectedMechanic.name,
+        user?.id || 'client_default',
+        user?.name || 'Guest User',
+        vehicleName,
+        issueDescription || 'Standard diagnostic check',
+        `${selectedDate} at ${selectedTime}`
+      );
+
+      setSubmissionStatus({
+        success: true,
+        message: `Appointment scheduled successfully with ${selectedMechanic.name}!`
       });
-
-      const responseData = await response.json();
-
-      if (response.ok) {
-        setSubmissionStatus({
-          success: true,
-          message: `Appointment scheduled successfully! Tracker ID: ${responseData.id || 'BK-42022'}`
-        });
-        // Clear input states on success to keep interaction loops crisp
-        setSelectedTime('');
-        setIssueDescription('');
-      } else {
-        throw new Error(responseData.message || 'Server ingestion rejection.');
-      }
+      
+      setTimeout(() => {
+        router.push('/dashboard/orders'); // routing to orders per specification
+      }, 2000);
+      
     } catch (error) {
       setSubmissionStatus({
         success: false,
-        message: 'Unable to schedule your appointment right now. Please check your connection and try again.'
+        message: 'Unable to schedule your appointment right now.'
       });
     } finally {
       setLoading(false);
@@ -87,19 +130,19 @@ export default function BookingFeaturePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-[#F8FAFC] py-12 px-4 sm:px-6 lg:px-8 font-sans mt-16">
+      <div className="max-w-5xl mx-auto">
         
         {/* HEADER BRAND BLOCK */}
         <div className="mb-10 text-center md:text-left">
-          <span className="text-xs font-black tracking-widest uppercase text-[#E62424] bg-red-50 px-3 py-1 rounded-full">
-            Flagship Ecosystem Feature
+          <span className="text-xs font-black tracking-widest uppercase text-[#E62424] bg-red-50 px-3 py-1 rounded-full border border-red-100">
+            Automate Express Service
           </span>
-          <h1 className="text-3xl font-black text-slate-900 uppercase tracking-tight mt-3">
-            Frictionless Mechanic Dispatch
+          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 uppercase tracking-tight mt-4">
+            Frictionless Dispatch
           </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Select an expert, allocate a timeline pocket, and initiate an diagnostic pipeline transaction instantly.
+          <p className="text-slate-500 text-sm mt-2 max-w-xl">
+            Select an expert, allocate a timeline, and initiate a diagnostic pipeline transaction instantly. Your vehicle data is securely pre-filled.
           </p>
         </div>
 
@@ -112,15 +155,37 @@ export default function BookingFeaturePage() {
           </div>
         )}
 
-        {/* MAIN INTERACTIVE SINGLE-VIEW CORE */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           
-          {/* STEP 1 & 2: SELECTION CARD INTERFACE COLUMN */}
+          {/* SELECTION COLUMN */}
           <div className="lg:col-span-3 space-y-6">
             
-            {/* MECHANICS TRACK CONTAINER */}
-            <div className="bg-white border border-slate-200/70 p-5 rounded-3xl shadow-sm">
-              <h2 className="text-xs font-black uppercase text-slate-400 tracking-wider mb-4">1. Select Available Specialist</h2>
+            {/* 1. VEHICLE SELECTION */}
+            <div className="bg-white border border-slate-200/70 p-6 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2 mb-4">
+                <Car className="w-4 h-4 text-slate-400" />
+                <h2 className="text-xs font-black uppercase text-slate-400 tracking-wider">1. Select Registered Vehicle</h2>
+              </div>
+              <select
+                value={selectedVehicle}
+                onChange={(e) => setSelectedVehicle(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-[#E62424] focus:ring-1 focus:ring-[#E62424] transition-all cursor-pointer appearance-none"
+              >
+                <option value="" disabled>Choose your vehicle...</option>
+                {vehicles.map(v => (
+                  <option key={v.id} value={v.id}>
+                    {v.year} {v.brand} {v.model} ({v.plate})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* 2. MECHANICS TRACK CONTAINER */}
+            <div className="bg-white border border-slate-200/70 p-6 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2 mb-4">
+                <Wrench className="w-4 h-4 text-slate-400" />
+                <h2 className="text-xs font-black uppercase text-slate-400 tracking-wider">2. Select Available Specialist</h2>
+              </div>
               <div className="space-y-3">
                 {mechanics.map((mech) => {
                   const isSelected = selectedMechanic?.id === mech.id;
@@ -128,23 +193,21 @@ export default function BookingFeaturePage() {
                     <div
                       key={mech.id}
                       onClick={() => { setSelectedMechanic(mech); setSubmissionStatus(null); }}
-                      className={`p-4 rounded-2xl border transition-all duration-150 cursor-pointer flex justify-between items-center ${
+                      className={`p-4 rounded-2xl border transition-all duration-200 cursor-pointer flex justify-between items-center ${
                         isSelected 
-                          ? 'border-[#E62424] bg-red-50/20 shadow-sm' 
-                          : 'border-slate-200/70 hover:bg-slate-50'
+                          ? 'border-[#E62424] bg-red-50/20 shadow-sm ring-1 ring-[#E62424]' 
+                          : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                       }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-slate-900 text-white font-bold flex items-center justify-center text-sm">
-                          {mech.name.split(' ').map(n => n[0]).join('')}
-                        </div>
+                      <div className="flex items-center gap-4">
+                        <img src={mech.avatar} alt={mech.name} className="w-12 h-12 rounded-xl object-cover shadow-sm border border-slate-100" />
                         <div>
-                          <h4 className="text-sm font-bold text-slate-900">{mech.name}</h4>
-                          <p className="text-xs text-slate-400 font-medium">{mech.specialty}</p>
+                          <h4 className="text-sm font-black text-slate-900">{mech.name}</h4>
+                          <p className="text-[11px] text-slate-500 font-medium">{mech.garageName}</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="block text-xs font-black text-slate-900">${mech.baseFee}</span>
+                        <span className="block text-sm font-black text-slate-900 font-mono">EGP {mech.baseFee.toLocaleString()}</span>
                         <span className="text-[10px] text-[#E62424] font-bold">★ {mech.rating}</span>
                       </div>
                     </div>
@@ -153,79 +216,165 @@ export default function BookingFeaturePage() {
               </div>
             </div>
 
-            {/* QUICK TIME SELECTOR ROW */}
-            <div className="bg-white border border-slate-200/70 p-5 rounded-3xl shadow-sm">
-              <h2 className="text-xs font-black uppercase text-slate-400 tracking-wider mb-3">2. Pick a Dispatch Window</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {availableSlots.map((time) => {
-                  const isSelected = selectedTime === time;
-                  return (
+            {/* 3. DATE & TIME SELECTOR ROW */}
+            <div className="bg-white border border-slate-200/70 p-6 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2 mb-4">
+                <CalendarIcon className="w-4 h-4 text-slate-400" />
+                <h2 className="text-xs font-black uppercase text-slate-400 tracking-wider">3. Pick a Dispatch Window</h2>
+              </div>
+              
+              <div className="space-y-6">
+                
+                {/* Custom Interactive Calendar */}
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 shadow-inner">
+                  <div className="flex items-center justify-between mb-4">
                     <button
                       type="button"
-                      key={time}
-                      onClick={() => { setSelectedTime(time); setSubmissionStatus(null); }}
-                      className={`py-2.5 px-2 rounded-xl text-xs font-bold tracking-tight transition-all duration-150 ${
-                        isSelected 
-                          ? 'bg-slate-950 text-white shadow-md shadow-slate-950/10' 
-                          : 'bg-slate-50 text-slate-700 border border-slate-200/60 hover:bg-slate-100'
-                      }`}
+                      onClick={prevMonth}
+                      className="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-colors flex items-center justify-center shadow-sm"
                     >
-                      {time}
+                      <ChevronLeft className="w-5 h-5" />
                     </button>
-                  );
-                })}
+                    <span className="text-sm font-bold text-slate-800">{monthLabel}</span>
+                    <button
+                      type="button"
+                      onClick={nextMonth}
+                      className="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-colors flex items-center justify-center shadow-sm"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Day headers */}
+                  <div className="grid grid-cols-7 gap-1 mb-2">
+                    {DAYS.map((d) => (
+                      <div key={d} className="text-center text-[10px] font-black text-slate-400 uppercase tracking-wider py-2">
+                        {d}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Calendar grid */}
+                  <div className="grid grid-cols-7 gap-1">
+                    {calendarDays.map((day, idx) => {
+                      if (!day) {
+                        return <div key={idx} className="h-10" />;
+                      }
+                      const past = isPastDate(day);
+                      const selected = selectedDateObj && isSameDay(day, selectedDateObj);
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          disabled={past}
+                          onClick={() => handleDateSelect(day)}
+                          className={`
+                            h-10 w-full rounded-xl text-xs font-bold transition-all outline-none flex items-center justify-center
+                            ${past
+                              ? 'text-slate-300 cursor-not-allowed bg-slate-100/50'
+                              : selected
+                                ? 'bg-[#E62424] text-white shadow-md shadow-red-500/30'
+                                : 'bg-white text-slate-700 border border-slate-200 hover:border-[#E62424]/50 hover:bg-red-50 shadow-sm'
+                            }
+                          `}
+                        >
+                          {day.getDate()}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Time Slots */}
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-slate-400 tracking-wider mb-3">Available Slots</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {availableSlots.map((time) => {
+                      const isSelected = selectedTime === time;
+                      return (
+                        <button
+                          type="button"
+                          key={time}
+                          disabled={!selectedDateObj}
+                          onClick={() => { setSelectedTime(time); setSubmissionStatus(null); }}
+                          className={`py-3 px-2 rounded-xl text-xs font-bold tracking-tight transition-all duration-150 flex items-center justify-center gap-1.5 ${
+                            !selectedDateObj
+                              ? 'bg-slate-100 text-slate-300 border border-slate-200 cursor-not-allowed'
+                              : isSelected 
+                                ? 'bg-slate-900 text-white shadow-md' 
+                                : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 shadow-sm'
+                          }`}
+                        >
+                          <Clock className="w-3 h-3" /> {time}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
               </div>
             </div>
 
           </div>
 
-          {/* STEP 3: FRICTIONLESS ORDER SUMMARY & DIRECT COMMIT PILL PANEL */}
+          {/* STEP 4: ORDER SUMMARY & DIRECT COMMIT PILL PANEL */}
           <div className="lg:col-span-2">
-            <form onSubmit={handleFrictionlessSubmit} className="bg-white border border-slate-200/70 p-5 rounded-3xl shadow-sm sticky top-24 space-y-5">
-              <h2 className="text-xs font-black uppercase text-slate-400 tracking-wider">3. Review Ticket Checkout</h2>
+            <form onSubmit={handleFrictionlessSubmit} className="bg-white border border-slate-200/70 p-6 rounded-3xl shadow-sm hover:shadow-md transition-shadow lg:sticky lg:top-24 space-y-6">
+              <h2 className="text-xs font-black uppercase text-slate-400 tracking-wider">4. Review Ticket Checkout</h2>
               
               {/* TICKET DETAILS MATRIX */}
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/50 space-y-3">
+              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400 font-medium">Selected Specialist:</span>
-                  <span className="font-bold text-slate-900">{selectedMechanic ? selectedMechanic.name : 'None Selected'}</span>
+                  <span className="text-slate-500 font-bold">Specialist:</span>
+                  <span className="font-black text-slate-900">{selectedMechanic ? selectedMechanic.name : 'Pending'}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400 font-medium">Allocated Time Pocket:</span>
-                  <span className="font-bold text-[#E62424]">{selectedTime ? selectedTime : 'Not Chosen'}</span>
+                  <span className="text-slate-500 font-bold">Schedule:</span>
+                  <div className="text-right">
+                    <span className="font-black text-[#E62424] block">{selectedDate ? selectedDate : 'No Date'}</span>
+                    <span className="font-bold text-slate-700 block text-[10px]">{selectedTime ? selectedTime : 'No Time'}</span>
+                  </div>
                 </div>
-                <hr className="border-slate-200/60" />
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-500 font-bold">Vehicle:</span>
+                  <span className="font-black text-slate-900 truncate max-w-[120px]">
+                    {selectedVehicle && vehicles.find(v => v.id === selectedVehicle) 
+                      ? vehicles.find(v => v.id === selectedVehicle)?.model 
+                      : 'Not Selected'}
+                  </span>
+                </div>
+                <hr className="border-slate-200" />
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-slate-900">Total Consultation Base:</span>
-                  <span className="text-lg font-black text-slate-900">${selectedMechanic ? selectedMechanic.baseFee : '0'}</span>
+                  <span className="text-xs font-black text-slate-900 uppercase">Consultation Base</span>
+                  <span className="text-xl font-black text-slate-900 font-mono">EGP {selectedMechanic ? selectedMechanic.baseFee.toLocaleString() : '0'}</span>
                 </div>
               </div>
 
               {/* CONTEXT DIAGNOSIS DESCRIPTIVE BLOCK */}
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <label className="block text-[10px] font-black uppercase text-slate-400 tracking-wider">
                   Diagnostic Case Notes (Optional)
                 </label>
                 <textarea
                   value={issueDescription}
                   onChange={(e) => setIssueDescription(e.target.value)}
-                  placeholder="Describe abnormal engine performance noise, dashboard warnings, brake wear symptoms..."
+                  placeholder="Describe engine abnormal noise, dashboard warnings..."
                   rows={3}
-                  className="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl p-3 focus:outline-none focus:border-slate-900 transition-colors placeholder:text-slate-400"
+                  className="w-full bg-white border border-slate-200 text-sm font-medium rounded-xl p-3 focus:outline-none focus:border-[#E62424] focus:ring-1 focus:ring-[#E62424] transition-colors placeholder:text-slate-400 resize-none shadow-sm"
                 />
               </div>
 
               {/* ACTION EXECUTE GATEWAY BUTTON */}
               <button
                 type="submit"
-                disabled={!selectedMechanic || !selectedTime || loading}
-                className={`w-full py-3.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-150 ${
-                  (!selectedMechanic || !selectedTime || loading)
+                disabled={!selectedMechanic || !selectedDate || !selectedTime || !selectedVehicle || loading}
+                className={`w-full py-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-150 ${
+                  (!selectedMechanic || !selectedDate || !selectedTime || !selectedVehicle || loading)
                     ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                    : 'bg-slate-950 text-white hover:bg-[#E62424] shadow-lg shadow-slate-950/5 active:scale-[0.98]'
+                    : 'bg-[#E62424] text-white hover:bg-red-700 shadow-[0_8px_16px_rgba(230,36,36,0.2)] active:scale-[0.98]'
                 }`}
               >
-                {loading ? 'Transmitting Ingestion Packets...' : 'Confirm Appointment'}
+                {loading ? 'Confirming Protocol...' : 'Finalize Dispatch'}
               </button>
             </form>
           </div>

@@ -11,7 +11,7 @@ import { useToastStore } from '../../../store/toastStore';
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, totalPrice, clearCart } = useCartStore();
-  const { user } = useAuthStore();
+  const { user, addOrder } = useAuthStore();
   const addToast = useToastStore((state) => state.addToast);
 
   const [fullName, setFullName] = useState('');
@@ -94,6 +94,24 @@ export default function CheckoutPage() {
     setIsSubmitting(false);
 
     const generatedId = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+    
+    // Push orders to the store's history
+    const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const estDelivery = new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    
+    items.forEach((item) => {
+      addOrder({
+        productName: item.product.name,
+        brand: item.product.brand,
+        price: item.product.price,
+        quantity: item.quantity,
+        status: 'Processing',
+        date: dateStr,
+        estimatedDelivery: estDelivery,
+        image: item.product.image
+      });
+    });
+
     setOrderId(generatedId);
     setOrderPlaced(true);
     addToast({
