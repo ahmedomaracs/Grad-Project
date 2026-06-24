@@ -14,7 +14,8 @@ import {
   LogOut, 
   ChevronLeft, 
   ChevronRight,
-  ShieldAlert
+  ShieldAlert,
+  Calendar,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { Logo } from '../ui/Logo';
@@ -28,6 +29,7 @@ export function DashboardSidebar() {
   const menuItems = [
     { label: 'Overview', icon: Home, href: '/dashboard' },
     { label: 'My Garage', icon: Car, href: '/dashboard/my-garage' },
+    { label: 'Bookings', icon: Calendar, href: '/dashboard/bookings' },
     { label: 'Find Mechanics', icon: Wrench, href: '/mechanics' },
     { label: 'Spare Parts Shop', icon: ShoppingBag, href: '/shop' },
     { label: 'Wallet', icon: Wallet, href: '/dashboard?tab=wallet' },

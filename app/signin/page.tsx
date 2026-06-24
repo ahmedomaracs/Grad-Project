@@ -63,9 +63,15 @@ function SigninPageContent() {
 
       setIsLoading(false);
       setSuccess(true);
-      
-      // Update the Zustand authStore (modify this if the BE returns specific user/token data)
-      loginUser(data.email);
+
+      // Extract token from response and persist in auth store
+      const token: string | undefined =
+        response?.data?.token ||
+        response?.data?.accessToken ||
+        response?.data?.jwtToken;
+
+      // Update the Zustand authStore with real token
+      loginUser(data.email, undefined, false, token);
 
       // Retrieve user session profile returned by successful authentication
       const user = useAuthStore.getState().user;

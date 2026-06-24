@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useCallback, Suspense, useEffect } from 'react';
+import React, { useState, useRef, useCallback, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -17,7 +17,6 @@ import {
 import { WorkspaceLayout } from '@/components/dashboard/WorkspaceLayout';
 import { useAuthStore } from '@/store/authStore';
 import { useToastStore } from '@/store/toastStore';
-import { garageApi } from '@/lib/services/garageApi';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -78,13 +77,16 @@ function MyGarageContent() {
   const [isDragOver, setIsDragOver] = useState(false);
 
   const [files, setFiles] = useState<File[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  /* -- store -- */
-  const { vehicles: storeVehicles, setVehicles } = useAuthStore();
+  /* -- store --
+   * Vehicle data is managed locally via Zustand (persisted to localStorage).
+   * The backend does not yet expose vehicle endpoints; this will be wired up
+   * to garageApi once /api/Vehicles is available on the server.
+   */
+  const { vehicles: storeVehicles, addVehicle: storeAdd, updateVehicle: storeUpdate, removeVehicle: storeRemove } = useAuthStore();
   const addToast = useToastStore((state) => state.addToast);
 
   /* -- derived -- */
@@ -100,42 +102,6 @@ function MyGarageContent() {
     mileage: v.mileage,
     images: v.images || (v.image ? [v.image] : []),
   }));
-
-  /* -- actions -- */
-  const fetchVehicles = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const res = await garageApi.getVehicles();
-      const mapped = res.data.map(v => ({
-        id: v.id,
-        brand: v.make,
-        make: v.make,
-        model: v.model,
-        year: v.year,
-        mileage: v.mileage,
-        status: v.status || 'Perfect',
-        image: v.images?.[0] || '',
-        images: v.images || [],
-        plate: `${v.plateCode || ''} ${v.plateNumber || ''}`.trim(),
-        plateCode: v.plateCode,
-        plateNumber: v.plateNumber,
-      }));
-      setVehicles(mapped);
-    } catch (err: any) {
-      console.error(err);
-      addToast({
-        type: 'error',
-        title: 'Failed to fetch vehicles',
-        message: err.response?.data?.message || 'Could not connect to the server.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [setVehicles, addToast]);
-
-  useEffect(() => {
-    fetchVehicles();
-  }, [fetchVehicles]);
 
   const openAdd = () => {
     setEditingId(null);
@@ -212,51 +178,31 @@ function MyGarageContent() {
       const existingImages = imagePreviews.filter(url => !url.startsWith('blob:'));
       const finalImages = [...existingImages, ...uploadedImages];
 
-      const payload = {
-        make,
-        model,
-        year: Number(year),
-        plateCode: plateCode.toUpperCase(),
-        plateNumber,
-        mileage: Number(mileage),
-        images: finalImages,
-      };
-
       if (editingId) {
-        const res = await garageApi.updateVehicle(editingId, payload);
-        const mapped = {
-          id: res.data.id,
-          brand: res.data.make,
-          make: res.data.make,
-          model: res.data.model,
-          year: res.data.year,
-          mileage: res.data.mileage,
-          status: res.data.status || 'Perfect',
-          image: res.data.images?.[0] || '',
-          images: res.data.images || [],
-          plate: `${res.data.plateCode || ''} ${res.data.plateNumber || ''}`.trim(),
-          plateCode: res.data.plateCode,
-          plateNumber: res.data.plateNumber,
-        };
-        setVehicles(storeVehicles.map(v => v.id === editingId ? mapped : v));
+        storeUpdate(editingId, {
+          make,
+          model,
+          year: Number(year),
+          plateCode: plateCode.toUpperCase(),
+          plateNumber,
+          mileage: Number(mileage),
+          images: finalImages,
+        });
         addToast({ type: 'success', title: 'Vehicle Saved', message: `${make} ${model} updated successfully.` });
       } else {
-        const res = await garageApi.addVehicle(payload);
-        const mapped = {
-          id: res.data.id,
-          brand: res.data.make,
-          make: res.data.make,
-          model: res.data.model,
-          year: res.data.year,
-          mileage: res.data.mileage,
-          status: res.data.status || 'Perfect',
-          image: res.data.images?.[0] || '',
-          images: res.data.images || [],
-          plate: `${res.data.plateCode || ''} ${res.data.plateNumber || ''}`.trim(),
-          plateCode: res.data.plateCode,
-          plateNumber: res.data.plateNumber,
-        };
-        setVehicles([...storeVehicles, mapped]);
+        storeAdd({
+          brand: make,
+          make,
+          model,
+          year: Number(year),
+          plateCode: plateCode.toUpperCase(),
+          plateNumber,
+          mileage: Number(mileage),
+          images: finalImages,
+          image: finalImages[0] || '',
+          plate: `${plateCode.toUpperCase()} ${plateNumber}`.trim(),
+          status: 'Perfect',
+        });
         addToast({ type: 'success', title: 'Vehicle Added', message: `${make} ${model} added to your garage.` });
       }
       setIsModalOpen(false);
@@ -265,26 +211,16 @@ function MyGarageContent() {
       addToast({
         type: 'error',
         title: 'Failed to save vehicle',
-        message: err.response?.data?.message || 'Error occurred while saving vehicle data.',
+        message: 'An unexpected error occurred. Please try again.',
       });
     } finally {
       setIsSaving(false);
     }
   };
 
-  const deleteVehicle = async (id: string) => {
-    try {
-      await garageApi.deleteVehicle(id);
-      setVehicles(storeVehicles.filter((v) => v.id !== id));
-      addToast({ type: 'success', title: 'Vehicle Deleted', message: 'Vehicle removed from your garage.' });
-    } catch (err: any) {
-      console.error(err);
-      addToast({
-        type: 'error',
-        title: 'Failed to delete vehicle',
-        message: err.response?.data?.message || 'Could not delete vehicle from database.',
-      });
-    }
+  const deleteVehicle = (id: string) => {
+    storeRemove(id);
+    addToast({ type: 'success', title: 'Vehicle Deleted', message: 'Vehicle removed from your garage.' });
   };
 
   const isFormValid =
@@ -422,11 +358,7 @@ function MyGarageContent() {
       </div>
 
       {/* Content */}
-      {isLoading ? (
-        <div className="flex items-center justify-center py-32">
-          <div className="w-10 h-10 border-[3px] border-slate-200 border-t-[#E12F2F] rounded-full animate-spin" />
-        </div>
-      ) : vehicles.length === 0 ? (
+      {vehicles.length === 0 ? (
         <EmptyState />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

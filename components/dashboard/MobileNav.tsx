@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Home, Car, Wrench, ShoppingBag, Wallet, User } from 'lucide-react';
+import { Home, Car, Wrench, ShoppingBag, Wallet, User, Calendar } from 'lucide-react';
 
 export function MobileNavigation() {
   const pathname = usePathname();
@@ -17,10 +17,10 @@ export function MobileNavigation() {
   const navs = [
     { label: 'Overview', icon: Home, href: '/dashboard' },
     { label: 'Garage', icon: Car, href: '/dashboard/my-garage' },
+    { label: 'Bookings', icon: Calendar, href: '/dashboard/bookings' },
     { label: 'Mechanics', icon: Wrench, href: '/mechanics' },
     { label: 'Shop', icon: ShoppingBag, href: '/shop' },
     { label: 'Wallet', icon: Wallet, href: '/dashboard?tab=wallet' },
-    { label: 'Profile', icon: User, href: '/profile' },
   ];
 
   return (

@@ -24,7 +24,7 @@ export default function MechanicsPage() {
   const addToast = useToastStore((state) => state.addToast);
 
   const [search, setSearch] = useState('');
-  const [activeSpecialty, setActiveSpecialty] = useState('All');
+  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
   const [bookingMech, setBookingMech] = useState<Mechanic | null>(null);
 
   // Booking details
@@ -41,12 +41,12 @@ export default function MechanicsPage() {
         m.garageName.toLowerCase().includes(search.toLowerCase());
       
       const matchesSpecialty =
-        activeSpecialty === 'All' ||
-        m.specialties.includes(activeSpecialty);
+        selectedSpecialties.length === 0 ||
+        m.specialties.some((spec) => selectedSpecialties.includes(spec));
 
       return matchesSearch && matchesSpecialty;
     });
-  }, [mechanics, search, activeSpecialty]);
+  }, [mechanics, search, selectedSpecialties]);
 
   const handleConfirmBooking = async () => {
     if (!bookingMech || !bookingDate || !bookingTime) return;
@@ -100,11 +100,26 @@ export default function MechanicsPage() {
         {/* Category Pills */}
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
           {SPECIALTIES.map((spec) => {
-            const isActive = activeSpecialty === spec;
+            const isActive = spec === 'All'
+              ? selectedSpecialties.length === 0
+              : selectedSpecialties.includes(spec);
+
+            const handleToggleSpecialty = (specialty: string) => {
+              if (specialty === 'All') {
+                setSelectedSpecialties([]); // Reset filters completely
+                return;
+              }
+              setSelectedSpecialties((prev) => 
+                prev.includes(specialty)
+                  ? prev.filter((item) => item !== specialty) // Remove if already selected
+                  : [...prev, specialty]                     // Append if newly checked
+              );
+            };
+
             return (
               <button
                 key={spec}
-                onClick={() => setActiveSpecialty(spec)}
+                onClick={() => handleToggleSpecialty(spec)}
                 className={`px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all ${
                   isActive
                     ? 'bg-[#E12F2F] text-white shadow-md shadow-[#E12F2F]/35'

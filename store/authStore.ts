@@ -138,6 +138,7 @@ export interface UserProfile {
 
 interface AuthStore {
   user: UserProfile | null;
+  token: string | null;
   vehicles: Vehicle[];
   mechanics: Mechanic[];
   appointments: Appointment[];
@@ -149,7 +150,7 @@ interface AuthStore {
   mechanicBookings: MechanicBooking[];
   merchantOrders: MerchantOrder[];
   inventoryAlerts: InventoryAlert[];
-  login: (email: string, name?: string, isNewUser?: boolean) => void;
+  login: (email: string, name?: string, isNewUser?: boolean, token?: string) => void;
   logout: () => void;
   updateProfile: (profile: Partial<UserProfile>) => void;
   setVehicles: (vehicles: Vehicle[]) => void;
@@ -158,6 +159,7 @@ interface AuthStore {
   removeVehicle: (id: string) => void;
   toggleFavoriteMechanic: (id: string) => void;
   addAppointment: (appointment: Omit<Appointment, 'id'>) => void;
+  updateAppointment: (id: string, appointment: Partial<Appointment>) => void;
   cancelAppointment: (id: string) => void;
   addTransaction: (type: WalletTransaction['type'], title: string, amount: number) => void;
   /** Push a notification targeted to a specific role + userId. */
@@ -404,6 +406,7 @@ export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
       user: null,
+      token: null,
       isAuthenticated: false,
       walletBalance: 460.50,
       vehicles: SAMPLE_VEHICLES,
@@ -416,7 +419,7 @@ export const useAuthStore = create<AuthStore>()(
       merchantOrders: SAMPLE_MERCHANT_ORDERS,
       inventoryAlerts: SAMPLE_INVENTORY_ALERTS,
 
-      login: (email: string, name?: string, isNewUser?: boolean) => {
+      login: (email: string, name?: string, isNewUser?: boolean, token?: string) => {
         let resolvedRole: UserRole = 'Client';
         const lowerEmail = email.toLowerCase();
         if (lowerEmail.includes('mechanic') || lowerEmail.startsWith('m1@') || lowerEmail.startsWith('m2@') || lowerEmail.startsWith('m3@') || lowerEmail.startsWith('m4@')) {
@@ -435,6 +438,7 @@ export const useAuthStore = create<AuthStore>()(
         set((state) => {
           const updates: any = {
             isAuthenticated: true,
+            token: token || state.token || null,
             user: {
               id,
               name: name || (resolvedRole === 'Client' ? 'Ahmed Al-Masri' : resolvedRole === 'Mechanic' ? 'Alex Rivera' : 'Turbo Parts Inc.'),
@@ -463,7 +467,8 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: () => set({ 
-        user: null, 
+        user: null,
+        token: null,
         isAuthenticated: false,
         vehicles: [],
         appointments: [],
@@ -515,6 +520,14 @@ export const useAuthStore = create<AuthStore>()(
         const id = 'a_' + Math.random().toString(36).substr(2, 9);
         set((state) => ({
           appointments: [{ ...appointment, id }, ...state.appointments],
+        }));
+      },
+
+      updateAppointment: (id, updates) => {
+        set((state) => ({
+          appointments: state.appointments.map((a) =>
+            a.id === id ? { ...a, ...updates } : a
+          ),
         }));
       },
 
