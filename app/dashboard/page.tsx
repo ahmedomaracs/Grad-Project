@@ -59,6 +59,7 @@ function DashboardContent() {
   const { 
     user, 
     vehicles, 
+    appointments,
     orders, 
     transactions, 
     walletBalance, 
@@ -439,6 +440,82 @@ function DashboardContent() {
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Bookings Widget */}
+            <div
+              onClick={() => router.push('/dashboard/bookings')}
+              className="theme-glass-card bg-white/80 border border-slate-200/70 rounded-3xl p-6 shadow-sm hover:shadow-md cursor-pointer"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-[#E12F2F]" />
+                    Service Bookings
+                  </h3>
+                  <span className="text-xs text-slate-500 font-bold block mt-1">
+                    {appointments.length} Active {appointments.length === 1 ? 'Booking' : 'Bookings'}
+                  </span>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push('/dashboard/bookings');
+                  }}
+                  className="inline-flex items-center gap-1.5 px-4 h-9 bg-slate-50 hover:bg-[#E12F2F]/5 hover:text-[#E12F2F] text-slate-700 text-xs font-bold rounded-xl border border-slate-200 hover:border-[#E12F2F]/20 transition-colors cursor-pointer"
+                >
+                  <Calendar className="w-4 h-4" />
+                  View All
+                </motion.button>
+              </div>
+
+              {appointments.length === 0 ? (
+                <div className="py-16 text-center border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center gap-3 bg-white/40">
+                  <Calendar className="w-12 h-12 text-slate-300" />
+                  <p className="font-bold text-slate-800">No active bookings</p>
+                  <p className="text-xs text-slate-500 max-w-xs">Schedule a diagnostic or repair session with a verified mechanic.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {appointments.map((appt) => (
+                    <div
+                      key={appt.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push('/dashboard/bookings');
+                      }}
+                      className="flex gap-4 p-4 bg-white border border-slate-100 rounded-2xl relative overflow-hidden group cursor-pointer shadow-sm hover:border-slate-300 transition-colors"
+                    >
+                      {appt.mechanicAvatar && (
+                        <div className="w-20 sm:w-28 h-20 bg-slate-50 rounded-xl overflow-hidden flex-shrink-0 relative border border-slate-100">
+                          <img src={appt.mechanicAvatar} alt={appt.mechanicName} className="object-cover w-full h-full group-hover:scale-105 transition-transform" />
+                        </div>
+                      )}
+                      <div className="flex-grow min-w-0">
+                        <span className="text-[10px] font-bold text-[#E12F2F] uppercase tracking-widest truncate block">{appt.service}</span>
+                        <h4 className="font-bold text-slate-900 text-sm truncate mt-0.5">{appt.mechanicName}</h4>
+                        <div className="flex flex-col gap-1 mt-2 text-xs text-slate-500 font-semibold">
+                          <span className="flex items-center gap-1 truncate">
+                            <Clock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                            {appt.date} at {appt.time}
+                          </span>
+                          <span className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold self-start mt-1 ${
+                            appt.status === 'Upcoming'
+                              ? 'bg-blue-50 text-blue-600 border border-blue-200/50'
+                              : appt.status === 'Completed'
+                              ? 'bg-green-50 text-green-600 border border-green-200/50'
+                              : 'bg-amber-50 text-amber-600 border border-amber-200/50'
+                          }`}>
+                            {appt.status}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>

@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Product } from '../../types/shop';
 import { useCartStore } from '../../store/cartStore';
+import { useAuthStore } from '../../store/authStore';
 import { RatingStars } from './RatingStars';
 import { cn } from '../../lib/utils';
 
@@ -29,9 +30,22 @@ export function ProductCard({ product, index }: ProductCardProps) {
   useEffect(() => {
     setMounted(true);
   }, []);
-  
-  // Simulate vehicle verification
-  const isVehicleVerified = index % 3 !== 0;
+
+  // ── Use Case 3: Fitment Verification Guardrail ──
+  // Match product category against the user's registered vehicles.
+  // We treat all brake / engine parts as universally compatible with any registered vehicle
+  // (a real system would deep-check BHC, OD, bolt pattern against vehicle specs).
+  const { vehicles } = useAuthStore();
+  const hasVehicle = vehicles.length > 0;
+  const compatibleCategories = ['Brakes', 'Engine', 'Accessories', 'Lighting', 'Tires'];
+  const isCategoryCompatible = compatibleCategories.includes(product.category);
+  const fitmentVerified = hasVehicle && isCategoryCompatible;
+  const fitmentVehicle = vehicles[0]; // Primary garage vehicle for label
+  const fitmentLabel = fitmentVehicle
+    ? `${fitmentVehicle.year} ${fitmentVehicle.brand || fitmentVehicle.make || ''} ${fitmentVehicle.model}`.trim()
+    : '';
+  // Warning when user has vehicles but category is unknown/unmatched
+  const showFitmentWarning = hasVehicle && !isCategoryCompatible;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
@@ -132,13 +146,26 @@ export function ProductCard({ product, index }: ProductCardProps) {
           </div>
           <span className="text-[9px] font-medium text-slate-400 font-mono">({product.reviewCount || '1.2k'})</span>
         </div>
+        {/* Fitment Verification Badge */}
+        {fitmentVerified && (
+          <div className="mt-1.5 flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200/60 text-emerald-700 text-[9px] font-bold">
+            <Check className="w-2.5 h-2.5 text-emerald-500 flex-shrink-0" strokeWidth={3} />
+            <span className="leading-tight">Fitment Verified: Fits your {fitmentLabel}</span>
+          </div>
+        )}
+        {showFitmentWarning && (
+          <div className="mt-1.5 flex items-start gap-1 px-2 py-1 rounded-lg bg-amber-50 border border-amber-200/60 text-amber-700 text-[9px] font-bold">
+            <span className="flex-shrink-0">⚠️</span>
+            <span className="leading-tight">Warning: This component does not match your registered vehicle specs.</span>
+          </div>
+        )}
       </div>
 
       {/* Price & Cart Addition Action Base Segment */}
       <div className="flex items-end justify-between mt-3 pt-2.5 border-t border-slate-100/60">
         <div className="flex flex-col">
           {product.originalPrice && (
-            <span className="text-[10px] text-slate-400 font-medium line-through font-mono leading-none">
+            <span className="text-[11px] text-slate-400 font-medium line-through font-mono leading-none mb-0.5">
               EGP {product.originalPrice.toFixed(2)}
             </span>
           )}

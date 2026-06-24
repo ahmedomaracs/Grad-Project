@@ -89,6 +89,31 @@ export interface Order {
   trackingNumber?: string;
 }
 
+export interface OrderManifestRecord {
+  orderId: string;
+  timestamp: string;
+  customerDetails: {
+    fullName: string;
+    email: string;
+  };
+  purchasedItems: Array<{
+    productId: string;
+    name: string;
+    quantity: number;
+    unitPriceEGP: number;
+  }>;
+  financialSummary: {
+    subtotalEGP: number;
+    shippingFeeEGP: number;
+    taxEGP: number;
+    totalPaidEGP: number;
+  };
+  deliveryType: 'DIRECT_TO_HOME' | 'SHIP_TO_WORKSHOP';
+  shippingAddress: string;
+  deliveryStatus: 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+  linkedAppointmentId?: string;
+}
+
 export interface MechanicBooking {
   id: string;
   customerName: string;
@@ -150,6 +175,7 @@ interface AuthStore {
   mechanicBookings: MechanicBooking[];
   merchantOrders: MerchantOrder[];
   inventoryAlerts: InventoryAlert[];
+  orderManifests: OrderManifestRecord[];
   login: (email: string, name?: string, isNewUser?: boolean, token?: string) => void;
   logout: () => void;
   updateProfile: (profile: Partial<UserProfile>) => void;
@@ -170,6 +196,7 @@ interface AuthStore {
   markNotificationRead: (id: string) => void;
   deleteNotification: (id: string) => void;
   addOrder: (order: Omit<Order, 'id'>) => void;
+  addOrderManifest: (record: Omit<OrderManifestRecord, 'orderId' | 'timestamp'>) => void;
   /** Mechanic advances a booking status — auto-notifies the owning Client. */
   updateBookingStatus: (id: string, status: MechanicBookingStatus) => void;
   /** Merchant updates an order status — auto-notifies the owning Client when Shipped. */
@@ -418,6 +445,7 @@ export const useAuthStore = create<AuthStore>()(
       mechanicBookings: SAMPLE_MECHANIC_BOOKINGS,
       merchantOrders: SAMPLE_MERCHANT_ORDERS,
       inventoryAlerts: SAMPLE_INVENTORY_ALERTS,
+      orderManifests: [],
 
       login: (email: string, name?: string, isNewUser?: boolean, token?: string) => {
         let resolvedRole: UserRole = 'Client';
@@ -593,6 +621,14 @@ export const useAuthStore = create<AuthStore>()(
         const id = 'o_' + Math.random().toString(36).substr(2, 9);
         set((state) => ({
           orders: [{ ...order, id }, ...state.orders],
+        }));
+      },
+
+      addOrderManifest: (record) => {
+        const orderId = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+        const timestamp = new Date().toISOString();
+        set((state) => ({
+          orderManifests: [{ ...record, orderId, timestamp }, ...state.orderManifests],
         }));
       },
 

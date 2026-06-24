@@ -174,6 +174,9 @@ function MyGarageContent() {
     if (!make || !model || !year || !mileage) return;
     setIsSaving(true);
     try {
+      // Simulate network request delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       const uploadedImages = await Promise.all(files.map(f => convertToBase64(f)));
       const existingImages = imagePreviews.filter(url => !url.startsWith('blob:'));
       const finalImages = [...existingImages, ...uploadedImages];

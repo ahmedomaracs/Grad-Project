@@ -86,19 +86,7 @@ export function ShopNavbar() {
           Browse Parts
         </Link>
 
-        {/* 2. Connected Garage View Link */}
-        <Link 
-          href="/dashboard/my-garage" 
-          className={`text-sm font-bold pb-1 border-b-2 transition-all ${
-            pathname === '/dashboard/my-garage' 
-              ? 'text-slate-900 border-[#E62424]' 
-              : 'text-slate-500 border-transparent hover:text-[#E62424]'
-          }`}
-        >
-          My Garage
-        </Link>
-
-        {/* 3. NEWLY CONNECTED: Order History Link */}
+        {/* 2. Order History Link */}
         <Link 
           href="/dashboard/orders" 
           className={`text-sm font-bold pb-1 border-b-2 transition-all ${
@@ -109,6 +97,18 @@ export function ShopNavbar() {
         >
           Order History
         </Link>
+
+        {/* 3. My Garage Link */}
+        <Link 
+          href="/dashboard/my-garage" 
+          className={`text-sm font-bold pb-1 border-b-2 transition-all ${
+            pathname === '/dashboard/my-garage' 
+              ? 'text-slate-900 border-[#E62424]' 
+              : 'text-slate-500 border-transparent hover:text-[#E62424]'
+          }`}
+        >
+          My Garage
+        </Link>
       </div>
 
       {/* Desktop actions */}
@@ -117,7 +117,7 @@ export function ShopNavbar() {
         <div className="h-9 px-3 bg-slate-50 border border-slate-200/60 rounded-xl flex items-center gap-1.5 text-xs font-bold text-slate-800 shadow-sm">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           <span>Wallet:</span>
-          <span className="text-slate-950">${balance}</span>
+          <span className="text-slate-950">EGP {(parseFloat(balance) * 50).toFixed(2)}</span>
         </div>
         
         {hydrated && isAuthenticated ? (

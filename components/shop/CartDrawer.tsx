@@ -10,33 +10,20 @@ import { useAuthStore } from '../../store/authStore';
 
 export function CartDrawer() {
   const router = useRouter();
-  const { items, isOpen, closeCart, removeItem, updateQuantity, clearCart, totalItems, totalPrice } = useCartStore();
+  const { cartItems, isOpen, closeCart, removeItem, updateQuantity, clearCart, totalItems, totalPrice, _hasHydrated } = useCartStore();
   const { user, checkoutCart } = useAuthStore();
-  const count = totalItems();
-  const total = totalPrice();
 
+  // SSR hydration guard — prevent localStorage mismatch on first paint
+  const [hasHydrated, setHasHydrated] = React.useState(false);
+  useEffect(() => { setHasHydrated(true); }, []);
 
+  const count = hasHydrated ? totalItems() : 0;
+  const total = hasHydrated ? totalPrice() : 0;
+  const safeItems = hasHydrated ? cartItems : [];
 
   const [workshopInstall, setWorkshopInstall] = useState(false);
 
   const handleCheckout = () => {
-    // Task A: fire cross-role event — creates MerchantOrders + notifies each Merchant
-    if (user && items.length > 0) {
-      checkoutCart(
-        items.map((i) => ({
-          productLabel: i.product.name,
-          // In a real system, each Product carries a merchantId field.
-          // We use a stable fallback so the Merchant demo account (keyed by email) receives the alert.
-          merchantId: (i.product as any).merchantId ?? 'merchant@automate.com',
-          merchantName: (i.product as any).merchantName ?? 'Automate Merchant',
-          totalPrice: i.product.price * i.quantity,
-          deliveryType: 'standard' as const,
-        })),
-        user.email,
-        user.name
-      );
-      clearCart();
-    }
     closeCart();
     router.push(workshopInstall ? '/shop/checkout?workshopInstall=true' : '/shop/checkout');
   };
@@ -84,8 +71,22 @@ export function CartDrawer() {
 
             {/* Items list */}
             <div className="flex-1 overflow-y-auto py-4 px-6 space-y-3">
+              {/* Hydration skeleton */}
+              {!hasHydrated ? (
+                <div className="space-y-3 animate-pulse">
+                  {[1, 2].map((n) => (
+                    <div key={n} className="flex gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                      <div className="w-16 h-16 rounded-xl bg-gray-200 flex-shrink-0" />
+                      <div className="flex-1 space-y-2 py-1">
+                        <div className="h-3 bg-gray-200 rounded w-3/4" />
+                        <div className="h-3 bg-gray-200 rounded w-1/2" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
               <AnimatePresence initial={false}>
-                {items.length === 0 ? (
+                {cartItems.length === 0 ? (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -104,7 +105,7 @@ export function CartDrawer() {
                     </div>
                   </motion.div>
                 ) : (
-                  items.map((item, idx) => (
+                  safeItems.map((item, idx) => (
                     <motion.div
                       key={`${item.product.id}-${idx}`}
                       layout
@@ -153,15 +154,16 @@ export function CartDrawer() {
                   ))
                 )}
               </AnimatePresence>
+              )} {/* end hydration guard */}
             </div>
 
             {/* Footer */}
             <AnimatePresence>
-              {items.length > 0 && (
+              {cartItems.length > 0 && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
                   className="px-6 py-5 border-t border-gray-100 space-y-4">
                   <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>Subtotal</span><span className="font-semibold text-gray-700">${total.toFixed(2)}</span>
+                    <span>Subtotal</span><span className="font-semibold text-gray-700">EGP {(total * 50).toFixed(2)}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm text-gray-500">
                     <span>Shipping</span><span className="font-semibold text-green-500">Free</span>
@@ -186,7 +188,7 @@ export function CartDrawer() {
                   <div className="h-px bg-gray-100" />
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-gray-900 text-lg">Total</span>
-                    <span className="font-extrabold text-gray-900 text-xl">${total.toFixed(2)}</span>
+                    <span className="font-extrabold text-gray-900 text-xl">EGP {(total * 50).toFixed(2)}</span>
                   </div>
                   <motion.button
                     whileHover={{ scale: 1.02, y: -1 }}

@@ -12,8 +12,11 @@ interface CartButtonProps {
 }
 
 export function CartButton({ className, variant = 'navbar' }: CartButtonProps) {
-  const { toggleCart, totalItems } = useCartStore();
-  const count = totalItems();
+  const { toggleCart, totalItems, _hasHydrated } = useCartStore();
+  const [hasHydrated, setHasHydrated] = useState(false);
+  useEffect(() => setHasHydrated(true), []);
+  const count = hasHydrated ? totalItems() : 0;
+  
   const [prevCount, setPrevCount] = useState(0);
   const [bumped, setBumped] = useState(false);
 
