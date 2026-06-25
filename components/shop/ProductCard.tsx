@@ -166,11 +166,11 @@ export function ProductCard({ product, index }: ProductCardProps) {
         <div className="flex flex-col">
           {product.originalPrice && (
             <span className="text-[11px] text-slate-400 font-medium line-through font-mono leading-none mb-0.5">
-              EGP {product.originalPrice.toFixed(2)}
+              EGP {product.originalPrice.toLocaleString()}
             </span>
           )}
           <span className="text-base font-black text-slate-900 tracking-tight font-mono mt-0.5">
-            EGP {product.price.toFixed(2)}
+            EGP {product.price.toLocaleString()}
           </span>
         </div>
 
@@ -228,9 +228,9 @@ export function ProductCard({ product, index }: ProductCardProps) {
               <p className="text-[10px] font-bold text-[#E12F2F] uppercase tracking-widest mb-1">{product.brand}</p>
               <h4 className="text-lg font-bold text-slate-900 leading-tight mb-2 line-clamp-2">{product.name}</h4>
               <div className="flex items-center gap-2">
-                <span className="text-xl font-extrabold text-slate-900">EGP {product.price.toFixed(2)}</span>
+                <span className="text-xl font-extrabold text-slate-900">EGP {product.price.toLocaleString()}</span>
                 {product.originalPrice && (
-                  <span className="text-sm text-slate-400 line-through">EGP {product.originalPrice.toFixed(2)}</span>
+                  <span className="text-sm text-slate-400 line-through">EGP {product.originalPrice.toLocaleString()}</span>
                 )}
               </div>
             </div>

@@ -11,7 +11,7 @@ export function getRoleDashboardPath(role: UserRole): string {
     case 'Partner':
       return '/admin';
     case 'Mechanic':
-      return '/dashboard/mechanic';
+      return '/mechanic';
     case 'Merchant':
       return '/dashboard/merchant';
     case 'Client':

@@ -16,6 +16,7 @@ export interface MechanicProfile {
   garageName?: string;
   available: boolean;
   joinedAt: string;
+  services?: Array<{ id: string; name: string; price: number; enabled: boolean }>;
 }
 
 export interface GlobalBooking {
@@ -27,8 +28,9 @@ export interface GlobalBooking {
   vehicle: string;
   serviceType: string;
   scheduledAt: string;
-  status: 'Pending' | 'Confirmed' | 'Checked-In' | 'In-Progress' | 'Ready for Pickup' | 'Completed' | 'Cancelled';
+  status: 'Pending' | 'Confirmed' | 'Checked-In' | 'In-Progress' | 'Waiting for Repair' | 'Under Repair' | 'Ready for Pickup' | 'Completed' | 'Cancelled';
   createdAt: string;
+  invoice?: { parts: Array<{ id: string; name: string; price: number }>; laborTotal: number; isPaid: boolean };
 }
 
 export interface GlobalOrder {
@@ -141,6 +143,7 @@ interface LocalDBStore {
   /** On Mechanic Signup: push new profile to registry (idempotent by id/email). */
   registerMechanic: (profile: Omit<MechanicProfile, 'joinedAt'>) => void;
   setMechanicAvailability: (mechanicId: string, available: boolean) => void;
+  updateMechanicServices: (mechanicId: string, services: Array<{ id: string; name: string; price: number; enabled: boolean }>) => void;
 
   // ── Global Bookings ──────────────────────────────────────────────────────
   /** On Client Booking: create booking record + push targeted Mechanic alert. */
@@ -152,6 +155,7 @@ interface LocalDBStore {
     clientUserId: string,
     serviceType: string
   ) => void;
+  updateBookingInvoice: (bookingId: string, invoice: NonNullable<GlobalBooking['invoice']>) => void;
 
   // ── Global Orders ────────────────────────────────────────────────────────
   /** On Client Purchase: create order record + push targeted Merchant alert. */
@@ -211,6 +215,14 @@ export const useLocalDB = create<LocalDBStore>()(
         }));
       },
 
+      updateMechanicServices: (mechanicId, services) => {
+        set((s) => ({
+          mechanicsRegistry: s.mechanicsRegistry.map((m) =>
+            m.id === mechanicId || m.email === mechanicId ? { ...m, services } : m
+          ),
+        }));
+      },
+
       // ── Global Bookings ────────────────────────────────────────────────────
       appendBooking: (booking) => {
         const id = 'gb_' + Math.random().toString(36).substr(2, 9);
@@ -225,7 +237,7 @@ export const useLocalDB = create<LocalDBStore>()(
           message: `New pending booking from ${booking.clientName} for ${booking.serviceType}.`,
           type: 'booking',
           unread: true,
-          link: '/dashboard/mechanic',
+          link: '/mechanic',
         });
         return newBooking;
       },
@@ -246,6 +258,14 @@ export const useLocalDB = create<LocalDBStore>()(
           unread: true,
           link: '/dashboard',
         });
+      },
+
+      updateBookingInvoice: (bookingId, invoice) => {
+        set((s) => ({
+          globalBookings: s.globalBookings.map((b) =>
+            b.id === bookingId ? { ...b, invoice } : b
+          ),
+        }));
       },
 
       // ── Global Orders ──────────────────────────────────────────────────────

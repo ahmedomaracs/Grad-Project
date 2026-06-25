@@ -229,15 +229,14 @@ function ShopContent() {
         isOpen={filterDrawerOpen}
         onClose={() => setFilterDrawerOpen(false)}
         filters={DEFAULT_FILTERS}
-        onChange={() => {}}
-        onReset={() => {}}
+        onChange={() => { }}
+        onReset={() => { }}
       />
 
       {/* ── HERO HEADER ── */}
       <div
-        className={`transition-all duration-300 ease-out will-change-[transform,opacity] ${
-          isScrolled ? 'opacity-0 -translate-y-6 pointer-events-none' : 'opacity-100 translate-y-0'
-        }`}
+        className={`transition-all duration-300 ease-out will-change-[transform,opacity] ${isScrolled ? 'opacity-0 -translate-y-6 pointer-events-none' : 'opacity-100 translate-y-0'
+          }`}
       >
         <section className="relative pt-32 pb-16 overflow-hidden">
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -317,7 +316,7 @@ function ShopContent() {
 
           {/* Unified Control Surface */}
           <div className="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col gap-4">
-            
+
             {/* Tabs Switcher Segment */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-2 bg-slate-100/80 backdrop-blur-sm p-1 rounded-xl w-full sm:max-w-md border border-slate-200/40">
               {(['search', 'vehicle', 'vin'] as const).map((tab) => (
@@ -325,9 +324,8 @@ function ShopContent() {
                   key={tab}
                   type="button"
                   onClick={() => setActiveFilterTab(tab)}
-                  className={`flex-1 min-w-[120px] text-xs font-bold font-mono tracking-wide px-4 py-2 rounded-lg transition-all duration-200 ${
-                    activeFilterTab === tab ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
-                  }`}
+                  className={`flex-1 min-w-[120px] text-xs font-bold font-mono tracking-wide px-4 py-2 rounded-lg transition-all duration-200 ${activeFilterTab === tab ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                    }`}
                 >
                   {tab === 'search' ? '🔍 SEARCH PARTS' : tab === 'vehicle' ? '🚗 BY VEHICLE' : '🆔 ENTER VIN'}
                 </button>
@@ -337,7 +335,7 @@ function ShopContent() {
             {/* Input field + Filter Anchor */}
             <div className="flex gap-2 items-center w-full">
               <div className="relative flex-1 w-full">
-                
+
                 {/* SEARCH tab */}
                 {activeFilterTab === 'search' && (
                   <SearchBar
@@ -396,11 +394,10 @@ function ShopContent() {
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
-                  selectedCategory === cat
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${selectedCategory === cat
                     ? 'bg-[#E62424] text-white shadow-md shadow-red-500/10'
                     : 'bg-white text-slate-600 border border-slate-100 hover:bg-slate-50'
-                }`}
+                  }`}
               >
                 {cat}
               </button>

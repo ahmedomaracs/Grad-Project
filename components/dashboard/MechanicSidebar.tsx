@@ -8,16 +8,14 @@ import { useAuthStore } from '../../store/authStore';
 import { Logo } from '../ui/Logo';
 
 const MECHANIC_NAV_LINKS = [
-  { href: '/dashboard/mechanic?tab=overview', icon: LayoutDashboard, label: 'Overview', tab: 'overview' },
-  { href: '/dashboard/mechanic?tab=bookings', icon: CalendarDays, label: 'Bookings', tab: 'bookings' },
-  { href: '/dashboard/mechanic?tab=services', icon: Wrench, label: 'Services', tab: 'services' },
-  { href: '/dashboard/mechanic?tab=earnings', icon: DollarSign, label: 'Earnings', tab: 'earnings' },
+  { href: '/mechanic', icon: LayoutDashboard, label: 'Overview' },
+  { href: '/mechanic/bookings', icon: CalendarDays, label: 'Bookings' },
+  { href: '/mechanic/services', icon: Wrench, label: 'Services' },
+  { href: '/mechanic/earnings', icon: DollarSign, label: 'Earnings' },
 ];
 
 export function MechanicSidebar() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const currentTab = searchParams.get('tab') || 'overview';
   const { logout } = useAuthStore();
 
   return (
@@ -28,7 +26,7 @@ export function MechanicSidebar() {
 
       <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
         {MECHANIC_NAV_LINKS.map((link) => {
-          const isActive = currentTab === link.tab;
+          const isActive = pathname === link.href || (link.href !== '/mechanic' && pathname.startsWith(link.href));
           
           return (
             <Link

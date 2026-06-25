@@ -86,7 +86,7 @@ function SigninPageContent() {
               router.push(callbackUrl || '/dashboard');
               break;
             case 'MECHANIC':
-              router.push('/dashboard/mechanic');
+              router.push('/mechanic');
               break;
             case 'MERCHANT':
               router.push('/dashboard/merchant');
@@ -320,7 +320,7 @@ function SigninPageContent() {
                                 router.push(callbackUrl || '/dashboard');
                                 break;
                               case 'MECHANIC':
-                                router.push('/dashboard/mechanic');
+                                router.push('/mechanic');
                                 break;
                               case 'MERCHANT':
                                 router.push('/dashboard/merchant');

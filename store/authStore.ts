@@ -205,6 +205,8 @@ interface AuthStore {
   checkoutCart: (items: { productLabel: string; merchantId: string; merchantName: string; totalPrice: number; deliveryType: 'standard' | 'workshop' }[], clientUserId: string, clientName: string) => void;
   /** Client booking: appends to mechanicBookings and pushes a targeted Mechanic alert. */
   bookMechanic: (mechanicId: string, mechanicUserId: string, clientUserId: string, clientName: string, vehicle: string, serviceType: string, time: string) => void;
+  _hasHydrated: boolean;
+  setHasHydrated: (state: boolean) => void;
 }
 
 const SAMPLE_VEHICLES: Vehicle[] = [
@@ -446,13 +448,16 @@ export const useAuthStore = create<AuthStore>()(
       merchantOrders: SAMPLE_MERCHANT_ORDERS,
       inventoryAlerts: SAMPLE_INVENTORY_ALERTS,
       orderManifests: [],
+      _hasHydrated: false,
+
+      setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
 
       login: (email: string, name?: string, isNewUser?: boolean, token?: string) => {
         let resolvedRole: UserRole = 'Client';
         const lowerEmail = email.toLowerCase();
-        if (lowerEmail.includes('mechanic') || lowerEmail.startsWith('m1@') || lowerEmail.startsWith('m2@') || lowerEmail.startsWith('m3@') || lowerEmail.startsWith('m4@')) {
+        if (lowerEmail.includes('m4@') || lowerEmail.startsWith('m1@') || lowerEmail.startsWith('m2@') || lowerEmail.startsWith('m3@') || lowerEmail.startsWith('m4@')) {
           resolvedRole = 'Mechanic';
-        } else if (lowerEmail.includes('merchant') || lowerEmail.includes('parts')) {
+        } else if (lowerEmail.includes('cs') || lowerEmail.includes('cs')) {
           resolvedRole = 'Merchant';
         } else if (lowerEmail.includes('admin')) {
           resolvedRole = 'Admin';
@@ -494,7 +499,7 @@ export const useAuthStore = create<AuthStore>()(
         });
       },
 
-      logout: () => set({ 
+      logout: () => set({
         user: null,
         token: null,
         isAuthenticated: false,
@@ -639,10 +644,10 @@ export const useAuthStore = create<AuthStore>()(
             mb.id === id ? { ...mb, status } : mb
           ),
         }));
-        
+
         // Sync to global registry
         if (booking && booking.clientUserId) {
-           useLocalDB.getState().advanceBookingStatus(id, status as any, booking.clientUserId, booking.serviceType);
+          useLocalDB.getState().advanceBookingStatus(id, status as any, booking.clientUserId, booking.serviceType);
         }
 
         // Task C: Mechanic status advance → Client notification
@@ -688,7 +693,7 @@ export const useAuthStore = create<AuthStore>()(
       checkoutCart: (items, clientUserId, clientName) => {
         const { pushNotification } = get();
         const newOrders: MerchantOrder[] = items.map((item) => {
-          
+
           // Sync to global registry
           const dbOrder = useLocalDB.getState().appendOrder({
             clientUserId,
@@ -759,13 +764,16 @@ export const useAuthStore = create<AuthStore>()(
           'New Booking Request 🔧',
           `New pending booking request from ${clientName} for ${serviceType}.`,
           'booking',
-          '/dashboard/mechanic'
+          '/mechanic'
         );
       },
     }),
     {
       name: 'automate-auth-storage',
-      skipHydration: true,
+      skipHydration: false,
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

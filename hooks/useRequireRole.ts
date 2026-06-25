@@ -1,24 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore, UserRole } from '../store/authStore';
 import { useToastStore } from '../store/toastStore';
 
 export function useRequireRole(requiredRole: UserRole) {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, _hasHydrated } = useAuthStore();
   const addToast = useToastStore((state) => state.addToast);
-  const [hydrated, setHydrated] = useState(false);
-
-  // Zustand persistent store hydration check
-  useEffect(() => {
-    useAuthStore.persist.rehydrate();
-    setHydrated(true);
-  }, []);
 
   useEffect(() => {
-    if (hydrated) {
+    if (_hasHydrated) {
       if (!isAuthenticated) {
         router.push('/signin');
       } else if (user?.role !== requiredRole) {
@@ -26,7 +19,7 @@ export function useRequireRole(requiredRole: UserRole) {
         router.push('/dashboard');
       }
     }
-  }, [hydrated, isAuthenticated, user, requiredRole, router, addToast]);
+  }, [_hasHydrated, isAuthenticated, user, requiredRole, router, addToast]);
 
-  return { isLoading: !hydrated || (!isAuthenticated && hydrated) || (hydrated && user?.role !== requiredRole), user };
+  return { isLoading: !_hasHydrated || (!isAuthenticated && _hasHydrated) || (_hasHydrated && user?.role !== requiredRole), user };
 }

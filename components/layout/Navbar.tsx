@@ -25,8 +25,39 @@ export function Navbar() {
   const [activeSection, setActiveSection] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const [hydrated, setHydrated] = useState(false);
+  const [isRouting, setIsRouting] = useState(false);
+
+  const handleDashboardNavigation = () => {
+    if (isRouting) return;
+    setIsRouting(true);
+    
+    if (!user) {
+      router.push('/signin');
+      setIsRouting(false);
+      return;
+    }
+
+    const role = user.role?.toLowerCase();
+    switch (role) {
+      case 'mechanic':
+        router.push('/mechanic');
+        break;
+      case 'merchant':
+        router.push('/dashboard/merchant');
+        break;
+      case 'admin':
+        router.push('/dashboard/admin');
+        break;
+      default:
+        router.push('/dashboard');
+        break;
+    }
+    
+    setTimeout(() => setIsRouting(false), 1000);
+    if (mobileMenuOpen) setMobileMenuOpen(false);
+  };
 
   // --- DROPDOWN CONTROL STATE ---
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -262,11 +293,9 @@ export function Navbar() {
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-4">
               {hydrated && isAuthenticated ? (
-                <Link href="/dashboard">
-                  <Button size="sm" className="gap-2">
-                    Go to Dashboard <ArrowRight className="w-4 h-4" />
-                  </Button>
-                </Link>
+                <Button size="sm" className="gap-2" onClick={handleDashboardNavigation}>
+                  Go to Dashboard <ArrowRight className="w-4 h-4" />
+                </Button>
               ) : (
                 <>
                   <Link href="/signin" className="text-sm font-semibold text-ink/80 hover:text-brand transition-colors">
@@ -326,9 +355,7 @@ export function Navbar() {
                 className="flex flex-col gap-4 w-full max-w-sm mt-6"
               >
                 {hydrated && isAuthenticated ? (
-                  <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                    <Button fullWidth size="lg">Go to Dashboard</Button>
-                  </Link>
+                  <Button fullWidth size="lg" onClick={handleDashboardNavigation}>Go to Dashboard</Button>
                 ) : (
                   <>
                     <Link href="/signin" onClick={() => setMobileMenuOpen(false)}>

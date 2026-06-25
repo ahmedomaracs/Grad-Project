@@ -10,7 +10,7 @@ interface UserRow {
   name: string;
   email: string;
   role: 'Client' | 'Mechanic' | 'Merchant' | 'Admin';
-  status: 'Active' | 'Suspended' | 'Pending Vetting';
+  status: 'Active' | 'Suspended' | 'Pending Vetting' | 'Banned';
   phone?: string;
   businessName?: string;
 }
@@ -18,11 +18,12 @@ interface UserRow {
 const LOCAL_USERS_KEY = 'automate-admin-users-list';
 
 export default function AdminUsersPage() {
-  const { applications, approveApplication } = usePartnershipStore();
+  const { applications, approveApplication, denyApplication } = usePartnershipStore();
   const registerMechanic = useLocalDB((s) => s.registerMechanic);
   const addToast = useToastStore((s) => s.addToast);
 
   const [activeTab, setActiveTab] = useState<'All' | 'Client' | 'Mechanic' | 'Merchant'>('All');
+  const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Suspended' | 'Pending Vetting' | 'Banned'>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<UserRow[]>([]);
   const [hydrated, setHydrated] = useState(false);
@@ -90,6 +91,43 @@ export default function AdminUsersPage() {
     });
   };
 
+  const handleBan = (userId: string, currentStatus: string) => {
+    const isBanned = currentStatus === 'Banned';
+    const updated = users.map((u) => {
+      if (u.id === userId) {
+        return { ...u, status: (isBanned ? 'Active' : 'Banned') as 'Active' | 'Banned' };
+      }
+      return u;
+    });
+    saveUsers(updated);
+
+    addToast({
+      type: isBanned ? 'success' : 'info',
+      title: isBanned ? 'Ban Lifted' : 'Account Banned',
+      message: `Account associated with ID ${userId} has been successfully ${isBanned ? 'unbanned' : 'banned'}.`,
+    });
+  };
+
+  const handleDelete = (userId: string) => {
+    if (!window.confirm('Are you sure you want to permanently delete this user?')) return;
+    const updated = users.filter((u) => u.id !== userId);
+    saveUsers(updated);
+    addToast({
+      type: 'info',
+      title: 'User Deleted',
+      message: `User ${userId} has been removed from the system.`,
+    });
+  };
+
+  const handleRejectCandidate = (candidateId: string) => {
+    denyApplication(candidateId, 'Rejected by Admin');
+    addToast({
+      type: 'info',
+      title: 'Candidate Rejected',
+      message: 'The application has been denied.',
+    });
+  };
+
   const handleApproveCandidate = (candidateId: string) => {
     // 1. Mark in partnership store as approved
     approveApplication(candidateId);
@@ -130,14 +168,15 @@ export default function AdminUsersPage() {
     }
   };
 
-  // Filter based on selected tab and search query
+  // Filter based on selected tab, status filter, and search query
   const filteredUsers = allData.filter((user) => {
     const matchesTab = activeTab === 'All' || user.role === activeTab;
+    const matchesStatus = statusFilter === 'All' || user.status === statusFilter;
     const matchesSearch =
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (user.businessName && user.businessName.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesTab && matchesSearch;
+    return matchesTab && matchesStatus && matchesSearch;
   });
 
   if (!hydrated) {
@@ -166,24 +205,43 @@ export default function AdminUsersPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         
         {/* Sorting Category Tabs */}
-        <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200/50 self-start">
-          {(['All', 'Client', 'Mechanic', 'Merchant'] as const).map((tab) => {
-            const isActive = activeTab === tab;
-            const label = tab === 'All' ? 'All Users' : tab + 's';
-            return (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-slate-950 text-white shadow-sm'
-                    : 'text-slate-500 hover:text-slate-950'
-                }`}
-              >
-                {label}
-              </button>
-            );
-          })}
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          {/* Role Filter */}
+          <select
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value as any)}
+            className="w-full sm:w-auto pl-4 pr-10 py-3 bg-slate-100 hover:bg-slate-200/50 border border-slate-200/50 rounded-xl text-xs font-black text-slate-700 focus:outline-none focus:border-slate-900 focus:bg-white focus:ring-1 focus:ring-slate-900 transition-all uppercase tracking-wider cursor-pointer appearance-none"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7' /%3E%3C/svg%3E")`,
+              backgroundPosition: 'right 0.75rem center',
+              backgroundSize: '1rem',
+              backgroundRepeat: 'no-repeat'
+            }}
+          >
+            <option value="All">All Roles</option>
+            <option value="Client">Clients</option>
+            <option value="Mechanic">Mechanics</option>
+            <option value="Merchant">Merchants</option>
+          </select>
+
+          {/* Status Filter */}
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as any)}
+            className="w-full sm:w-auto pl-4 pr-10 py-3 bg-slate-100 hover:bg-slate-200/50 border border-slate-200/50 rounded-xl text-xs font-black text-slate-700 focus:outline-none focus:border-slate-900 focus:bg-white focus:ring-1 focus:ring-slate-900 transition-all uppercase tracking-wider cursor-pointer appearance-none"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7' /%3E%3C/svg%3E")`,
+              backgroundPosition: 'right 0.75rem center',
+              backgroundSize: '1rem',
+              backgroundRepeat: 'no-repeat'
+            }}
+          >
+            <option value="All">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Suspended">Suspended</option>
+            <option value="Pending Vetting">Pending Vetting</option>
+            <option value="Banned">Banned</option>
+          </select>
         </div>
 
         {/* Search Input Box */}
@@ -262,6 +320,8 @@ export default function AdminUsersPage() {
                           ? 'bg-green-50 text-green-600'
                           : user.status === 'Suspended'
                           ? 'bg-red-50 text-[#E62424]'
+                          : user.status === 'Banned'
+                          ? 'bg-gray-800 text-white'
                           : 'bg-amber-50 text-amber-600 border border-amber-200/50'
                       }`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${
@@ -269,6 +329,8 @@ export default function AdminUsersPage() {
                             ? 'bg-green-500'
                             : user.status === 'Suspended'
                             ? 'bg-[#E62424]'
+                            : user.status === 'Banned'
+                            ? 'bg-white'
                             : 'bg-amber-500 animate-pulse'
                         }`} />
                         {user.status}
@@ -279,23 +341,53 @@ export default function AdminUsersPage() {
                     <td className="px-8 py-5 text-right">
                       <div className="flex justify-end gap-2">
                         {user.status === 'Pending Vetting' ? (
-                          <button
-                            onClick={() => handleApproveCandidate(user.id)}
-                            className="px-3 py-2 bg-slate-950 hover:bg-[#E62424] text-white text-[9px] font-black uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
-                          >
-                            Approve Candidate
-                          </button>
+                          <>
+                            <button
+                              onClick={() => handleApproveCandidate(user.id)}
+                              className="px-3 py-2 bg-slate-950 hover:bg-slate-800 text-white text-[9px] font-black uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => handleRejectCandidate(user.id)}
+                              className="px-3 py-2 bg-red-50 hover:bg-red-100 text-[#E62424] border border-red-200 text-[9px] font-black uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
+                            >
+                              Reject
+                            </button>
+                          </>
                         ) : (
-                          <button
-                            onClick={() => handleSuspend(user.id, user.status)}
-                            className={`px-3 py-2 text-[9px] font-black uppercase tracking-wider rounded-lg border transition-colors cursor-pointer ${
-                              user.status === 'Active'
-                                ? 'bg-white hover:bg-red-50 border-slate-200 hover:border-red-200 text-[#E62424]'
-                                : 'bg-slate-950 hover:bg-slate-800 border-slate-950 text-white'
-                            }`}
-                          >
-                            {user.status === 'Active' ? 'Suspend Token' : 'Reactivate'}
-                          </button>
+                          <>
+                            {user.status !== 'Banned' && (
+                              <button
+                                onClick={() => handleSuspend(user.id, user.status)}
+                                className={`px-3 py-2 text-[9px] font-black uppercase tracking-wider rounded-lg border transition-colors cursor-pointer ${
+                                  user.status === 'Active'
+                                    ? 'bg-white hover:bg-orange-50 border-slate-200 hover:border-orange-200 text-orange-600'
+                                    : 'bg-slate-950 hover:bg-slate-800 border-slate-950 text-white'
+                                }`}
+                              >
+                                {user.status === 'Active' ? 'Suspend' : 'Reactivate'}
+                              </button>
+                            )}
+                            {user.status !== 'Suspended' && (
+                              <button
+                                onClick={() => handleBan(user.id, user.status)}
+                                className={`px-3 py-2 text-[9px] font-black uppercase tracking-wider rounded-lg border transition-colors cursor-pointer ${
+                                  user.status === 'Banned'
+                                    ? 'bg-white hover:bg-green-50 border-slate-200 hover:border-green-200 text-green-600'
+                                    : 'bg-red-50 hover:bg-red-100 border-red-200 hover:border-red-300 text-[#E62424]'
+                                }`}
+                              >
+                                {user.status === 'Banned' ? 'Unban' : 'Ban'}
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleDelete(user.id)}
+                              className="px-3 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 text-[9px] font-black uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
+                            >
+                              Delete
+                            </button>
+                          </>
                         )}
                       </div>
                     </td>
