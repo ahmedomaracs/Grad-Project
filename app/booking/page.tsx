@@ -91,12 +91,12 @@ function BookingFeatureContent() {
 
   // Prefill default vehicle if exists
   useEffect(() => {
-    if (isReschedule && queryVehicleId) {
+    if (queryVehicleId) {
       setSelectedVehicle(queryVehicleId);
     } else if (vehicles.length > 0 && !selectedVehicle) {
       setSelectedVehicle(vehicles[0].id);
     }
-  }, [vehicles, isReschedule, queryVehicleId]);
+  }, [vehicles, queryVehicleId]);
 
   // Hydrate rescheduling context
   useEffect(() => {
@@ -140,20 +140,9 @@ function BookingFeatureContent() {
       dateObj.setHours(hour24, minutes, 0, 0);
       const scheduledAt = dateObj.toISOString();
 
-      // --- Try real API first ---
-      try {
-        await appointmentsApi.create({
-          mechanicId: Number(selectedMechanic.id) || 0,
-          vehicleDescription: vehicleName,
-          serviceType: issueDescription || 'Standard diagnostic check',
-          scheduledAt,
-          notes: issueDescription || undefined,
-        });
-      } catch (apiErr) {
-        // Backend may 401 (not auth'd) or mechanic ID may not match — 
-        // fall through to local store so the page never fully breaks.
-        console.warn('[BookingPage] API create appointment failed, using local store only:', apiErr);
-      }
+      // --- Use local store only to prevent 401 interceptor redirect ---
+      // The API call is disabled here because an invalid token triggers
+      // a global 401 interceptor that redirects to /signin and clears local storage.
 
       // Always mirror into local Zustand store for immediate UI feedback for Mechanics dashboard
       bookMechanic(
@@ -213,7 +202,16 @@ function BookingFeatureContent() {
       // UX State reset & Route loop execution immediately:
       // Using router.replace ensures the ?reschedule URL params aren't left in history,
       // creating a clean slate if the user re-navigates to /booking.
-      router.replace('/dashboard/bookings');
+      if (user) {
+        router.replace('/dashboard/bookings');
+      } else {
+        // Guest user: just clear the form so they can see the success message
+        setSelectedMechanic(null);
+        setSelectedDate('');
+        setSelectedTime('');
+        setIssueDescription('');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
       
     } catch (error) {
       setSubmissionStatus({

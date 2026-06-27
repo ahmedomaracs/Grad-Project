@@ -1,471 +1,766 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Calendar,
-  Clock,
-  Wrench,
-  Car,
-  ChevronRight,
-  Home,
-  ArrowRight,
-  CheckCircle2,
-  AlertCircle,
-  Loader2,
-  Ban,
-  MapPin,
-  Receipt,
-  ChevronDown,
-  ChevronUp,
-  RefreshCw,
-} from 'lucide-react';
-import { WorkspaceLayout } from '@/components/dashboard/WorkspaceLayout';
-import { useAuthStore, type AppointmentStatus, type Appointment } from '@/store/authStore';
+import React, { useState, useEffect } from 'react';
+import { useLocalDB, GlobalBooking } from '../../../store/localDB';
+import { useToastStore } from '../../../store/toastStore';
 
-/* ------------------------------------------------------------------ */
-/*  Status config — badge colour, label, icon, pulse                   */
-/* ------------------------------------------------------------------ */
-const STATUS_CONFIG: Record<
-  AppointmentStatus,
-  { label: string; bg: string; text: string; border: string; Icon: React.FC<{ className?: string }>; pulse?: boolean }
-> = {
-  Upcoming: {
-    label: 'Upcoming',
-    bg: 'bg-amber-50',
-    text: 'text-amber-700',
-    border: 'border-amber-200',
-    Icon: ({ className }) => <Clock className={className} />,
-  },
-  'In Progress': {
-    label: 'In Progress',
-    bg: 'bg-blue-50',
-    text: 'text-blue-700',
-    border: 'border-blue-200',
-    Icon: ({ className }) => <Loader2 className={`${className} animate-spin`} />,
-    pulse: true,
-  },
-  Completed: {
-    label: 'Completed',
-    bg: 'bg-emerald-50',
-    text: 'text-emerald-700',
-    border: 'border-emerald-200',
-    Icon: ({ className }) => <CheckCircle2 className={className} />,
-  },
-  Cancelled: {
-    label: 'Cancelled',
-    bg: 'bg-slate-100',
-    text: 'text-slate-500',
-    border: 'border-slate-200',
-    Icon: ({ className }) => <Ban className={className} />,
-  },
+type ColumnStatus = 'PENDING' | 'WAITING_FOR_REPAIR' | 'UNDER_REPAIR' | 'READY_FOR_PICKUP' | 'CANCELLED';
+
+interface ServicePriceMap {
+  [service: string]: number;
+}
+
+const SERVICE_PRICES: ServicePriceMap = {
+  'Performance Exhaust Remap': 5400,
+  'EV Tuning & Battery Calibration': 8500,
+  'Full Oil Flush': 1950,
+  'Brake Pad Replacement': 3200,
+  'Full Engine Diagnostics': 2500,
+  'Suspension Alignment': 2900,
+  'Default Service': 1500,
 };
 
-/* Also handle mechanic-side statuses the user might see */
-const EXTENDED_STATUS_MAP: Record<string, keyof typeof STATUS_CONFIG> = {
-  Pending: 'Upcoming',
-  Confirmed: 'Upcoming',
-  'Checked-In': 'In Progress',
-  'In-Progress': 'In Progress',
-  'Ready for Pickup': 'Completed',
-  Upcoming: 'Upcoming',
-  Completed: 'Completed',
-  Cancelled: 'Cancelled',
-  'In Progress': 'In Progress',
-};
+export default function AdminBookingsPage() {
+  const {
+    globalBookings,
+    advanceBookingStatus,
+    appendBooking,
+    mechanicsRegistry,
+    updateBookingInvoice,
+  } = useLocalDB();
+  const addToast = useToastStore((s) => s.addToast);
 
-function resolveStatus(raw: string): AppointmentStatus {
-  return (EXTENDED_STATUS_MAP[raw] as AppointmentStatus) ?? 'Upcoming';
-}
+  const [hydrated, setHydrated] = useState(false);
 
-/* ------------------------------------------------------------------ */
-/*  Status Badge                                                        */
-/* ------------------------------------------------------------------ */
-function StatusBadge({ status }: { status: string }) {
-  const resolved = resolveStatus(status);
-  const cfg = STATUS_CONFIG[resolved];
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${cfg.bg} ${cfg.text} ${cfg.border}`}
-    >
-      {cfg.pulse && (
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
-        </span>
-      )}
-      {!cfg.pulse && <cfg.Icon className="w-3 h-3" />}
-      {cfg.label}
-    </span>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Empty State                                                         */
-/* ------------------------------------------------------------------ */
-function EmptyState() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className="flex flex-col items-center justify-center text-center py-28 border border-dashed border-slate-200 bg-white rounded-3xl shadow-sm"
-    >
-      <div className="w-20 h-20 rounded-3xl bg-slate-50 border border-slate-200 flex items-center justify-center mb-8 shadow-sm">
-        <Wrench className="w-9 h-9 text-slate-300" strokeWidth={1.5} />
-      </div>
-      <h2 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">No Bookings Yet</h2>
-      <p className="text-sm text-slate-500 font-medium max-w-sm leading-relaxed mb-8">
-        You haven't scheduled any service appointments yet. Book a certified mechanic to get started.
-      </p>
-      <Link
-        href="/booking"
-        className="inline-flex items-center gap-2 px-6 py-3 bg-[#E62424] hover:bg-red-700 text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-red-500/20 transition-all active:scale-[0.98]"
-      >
-        <Wrench className="w-4 h-4" />
-        Schedule a Certified Mechanic
-        <ArrowRight className="w-4 h-4" />
-      </Link>
-    </motion.div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Booking Card                                                        */
-/* ------------------------------------------------------------------ */
-function BookingCard({ appt, index }: { appt: Appointment; index: number }) {
-  const [expanded, setExpanded] = useState(false);
-  const { vehicles } = useAuthStore();
-
-  // Try to match a vehicle from the store by id or name
-  const vehicle = vehicles.find(
-    (v) => v.id === appt.vehicleId || `${v.year} ${v.brand || v.make} ${v.model}` === appt.vehicleName
-  );
-
-  const vehicleLabel =
-    vehicle
-      ? `${vehicle.year} ${vehicle.brand || vehicle.make} ${vehicle.model}`
-      : appt.vehicleName || 'Unknown Vehicle';
-
-  const vehiclePlate = vehicle?.plate || vehicle?.plateNumber || null;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, delay: index * 0.07, ease: [0.16, 1, 0.3, 1] }}
-      className="bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
-    >
-      {/* ── Card Header ── */}
-      <div
-        className="flex items-start sm:items-center justify-between gap-4 p-5 sm:p-6 cursor-pointer select-none"
-        onClick={() => setExpanded((p) => !p)}
-      >
-        {/* Left — mechanic avatar + core info */}
-        <div className="flex items-start sm:items-center gap-4 min-w-0">
-          {appt.mechanicAvatar ? (
-            <img
-              src={appt.mechanicAvatar}
-              alt={appt.mechanicName}
-              className="w-12 h-12 rounded-2xl object-cover border border-slate-100 shadow-sm flex-shrink-0"
-            />
-          ) : (
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0">
-              <Wrench className="w-5 h-5 text-slate-400" />
-            </div>
-          )}
-
-          <div className="min-w-0">
-            <p className="text-xs font-black uppercase tracking-wider text-[#E62424] mb-0.5">
-              {appt.service}
-            </p>
-            <h3 className="text-sm font-black text-slate-900 truncate">{appt.mechanicName}</h3>
-            {appt.garageName && (
-              <p className="text-xs text-slate-400 font-medium truncate">{appt.garageName}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Right — status + expand toggle */}
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <StatusBadge status={appt.status} />
-          <div className="text-slate-400 hidden sm:block">
-            {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </div>
-        </div>
-      </div>
-
-      {/* ── Pill row — date / vehicle / price ── */}
-      <div className="flex flex-wrap items-center gap-2 px-5 sm:px-6 pb-4">
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full">
-          <Calendar className="w-3 h-3 text-slate-400" />
-          {appt.date}
-        </span>
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full">
-          <Clock className="w-3 h-3 text-slate-400" />
-          {appt.time}
-        </span>
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full">
-          <Car className="w-3 h-3 text-slate-400" />
-          {vehicleLabel}
-          {vehiclePlate && ` · ${vehiclePlate}`}
-        </span>
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-black text-slate-900 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full">
-          <Receipt className="w-3 h-3 text-[#E62424]" />
-          EGP {(appt.price * 50).toLocaleString()}
-        </span>
-      </div>
-
-      {/* ── Expanded Detail Panel ── */}
-      <AnimatePresence initial={false}>
-        {expanded && (
-          <motion.div
-            key="details"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden"
-          >
-            <div className="mx-5 sm:mx-6 mb-5 p-5 rounded-2xl bg-slate-50/80 border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-5 relative overflow-hidden">
-              {/* Red accent line */}
-              <div className="absolute top-0 left-0 w-1 h-full bg-[#E62424] rounded-r-full" />
-
-              {/* Service info */}
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Service Details</p>
-                <p className="text-sm font-bold text-slate-900">{appt.service}</p>
-                {appt.notes && (
-                  <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">"{appt.notes}"</p>
-                )}
-              </div>
-
-              {/* Vehicle info */}
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Vehicle</p>
-                <p className="text-sm font-bold text-slate-900">{vehicleLabel}</p>
-                {vehiclePlate && (
-                  <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold bg-white border border-slate-200 text-slate-600 px-2 py-1 rounded-lg">
-                    <MapPin className="w-2.5 h-2.5 text-[#E62424]" />
-                    Plate: {vehiclePlate}
-                  </span>
-                )}
-                {vehicle?.mileage && (
-                  <p className="text-xs text-slate-500 mt-1">{Number(vehicle.mileage).toLocaleString()} km</p>
-                )}
-              </div>
-
-              {/* Cost breakdown */}
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Transaction</p>
-                <p className="text-2xl font-black text-slate-900 font-mono">
-                  EGP {(appt.price * 50).toLocaleString()}
-                </p>
-                <p className="text-[10px] text-slate-400 font-medium mt-0.5">Consultation base fee</p>
-                <div className="mt-3">
-                  <StatusBadge status={appt.status} />
-                </div>
-              </div>
-            </div>
-
-            {/* Action row */}
-            {(appt.status === 'Upcoming') && (
-              <div className="px-5 sm:px-6 pb-5 flex gap-2">
-                <Link
-                  href={`/booking?reschedule=true&bookingId=${appt.id}&mechanic=${encodeURIComponent(appt.mechanicName)}&service=${encodeURIComponent(appt.service)}&vehicleId=${appt.vehicleId || ''}`}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-900 hover:bg-slate-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  Reschedule
-                </Link>
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Stats Strip                                                         */
-/* ------------------------------------------------------------------ */
-function StatsStrip({ appointments }: { appointments: Appointment[] }) {
-  const total = appointments.length;
-  const completed = appointments.filter((a) => a.status === 'Completed').length;
-  const upcoming = appointments.filter(
-    (a) => a.status === 'Upcoming' || a.status === 'In Progress'
-  ).length;
-  const totalSpend = appointments
-    .filter((a) => a.status === 'Completed')
-    .reduce((sum, a) => sum + a.price * 50, 0);
-
-  const stats = [
-    { label: 'Total Bookings', value: total, suffix: '' },
-    { label: 'Completed', value: completed, suffix: '' },
-    { label: 'Upcoming / Active', value: upcoming, suffix: '' },
-    { label: 'Total Spent', value: `EGP ${totalSpend.toLocaleString()}`, suffix: '' },
-  ];
-
-  return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      {stats.map((s, i) => (
-        <motion.div
-          key={s.label}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm"
-        >
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{s.label}</p>
-          <p className="text-2xl font-black text-slate-900 font-mono">{s.value}</p>
-        </motion.div>
-      ))}
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Filter Tabs                                                         */
-/* ------------------------------------------------------------------ */
-type FilterKey = 'All' | 'Upcoming' | 'In Progress' | 'Completed' | 'Cancelled';
-const FILTERS: FilterKey[] = ['All', 'Upcoming', 'In Progress', 'Completed', 'Cancelled'];
-
-function filterAppointments(appointments: Appointment[], filter: FilterKey): Appointment[] {
-  if (filter === 'All') return appointments;
-  return appointments.filter((a) => resolveStatus(a.status) === filter);
-}
-
-/* ------------------------------------------------------------------ */
-/*  Main Page Content                                                   */
-/* ------------------------------------------------------------------ */
-function BookingsPageContent() {
-  const router = useRouter();
-  const { appointments } = useAuthStore();
-  const [activeFilter, setActiveFilter] = useState<FilterKey>('All');
-
-  const filtered = filterAppointments(appointments, activeFilter);
-
-  // Sort: upcoming first, then by date desc
-  const sorted = [...filtered].sort((a, b) => {
-    const order: Record<string, number> = { 'In Progress': 0, Upcoming: 1, Completed: 2, Cancelled: 3 };
-    const aOrd = order[resolveStatus(a.status)] ?? 4;
-    const bOrd = order[resolveStatus(b.status)] ?? 4;
-    if (aOrd !== bOrd) return aOrd - bOrd;
-    return new Date(b.date).getTime() - new Date(a.date).getTime();
+  // Drag over columns tracking
+  const [isDraggingOverCol, setIsDraggingOverCol] = useState<Record<ColumnStatus, boolean>>({
+    PENDING: false,
+    WAITING_FOR_REPAIR: false,
+    UNDER_REPAIR: false,
+    READY_FOR_PICKUP: false,
+    CANCELLED: false,
   });
 
+  // Client user directory lookup
+  const [users, setUsers] = useState<any[]>([]);
+
+  // Selected booking in modal
+  const [selectedBooking, setSelectedBooking] = useState<GlobalBooking | null>(null);
+
+  // Invoice draft editor inside modal
+  const [editingInvoice, setEditingInvoice] = useState<{
+    parts: Array<{ id: string; name: string; price: number }>;
+    laborTotal: number;
+    isPaid: boolean;
+  } | null>(null);
+
+  // Add Part inputs inside modal
+  const [partName, setPartName] = useState('');
+  const [partPrice, setPartPrice] = useState<number | ''>('');
+
+  // Seed sample bookings if database is empty on load + load client profiles
+  useEffect(() => {
+    setHydrated(true);
+    if (globalBookings.length === 0) {
+      // Append some realistic mock bookings to seed the database
+      appendBooking({
+        clientUserId: 'client_tariq',
+        clientName: 'Tariq Al-Fayed',
+        mechanicId: 'm1',
+        mechanicName: 'Marcus Vance',
+        vehicle: 'Porsche 911 GT3 RS (2022)',
+        serviceType: 'Performance Exhaust Remap',
+        scheduledAt: 'Today, 10:00 AM',
+        status: 'Pending',
+      });
+
+      appendBooking({
+        clientUserId: 'client_ahmad',
+        clientName: 'Ahmad Zaki',
+        mechanicId: 'm3',
+        mechanicName: 'Dinesh Chawla',
+        vehicle: 'Mercedes-AMG G63 (2021)',
+        serviceType: 'Full Oil Flush',
+        scheduledAt: 'Tomorrow, 9:00 AM',
+        status: 'Waiting for Repair',
+      });
+
+      appendBooking({
+        clientUserId: 'client_sarah',
+        clientName: 'Sarah Connor',
+        mechanicId: 'm2',
+        mechanicName: 'Sarah Connor',
+        vehicle: 'Audi e-tron GT (2023)',
+        serviceType: 'EV Tuning & Battery Calibration',
+        scheduledAt: 'Today, 2:30 PM',
+        status: 'Under Repair',
+      });
+
+      appendBooking({
+        clientUserId: 'client_leila',
+        clientName: 'Leila Hassan',
+        mechanicId: 'm4',
+        mechanicName: 'Lena Müller',
+        vehicle: 'BMW M4 Competition (2024)',
+        serviceType: 'Brake Pad Replacement',
+        scheduledAt: 'Today, 8:00 AM',
+        status: 'Ready for Pickup',
+      });
+    }
+
+    const storedUsers = localStorage.getItem('automate-admin-users-list');
+    if (storedUsers) {
+      try {
+        setUsers(JSON.parse(storedUsers));
+      } catch (err) {
+        console.error('Error loading users:', err);
+      }
+    }
+  }, [globalBookings.length, appendBooking]);
+
+  // Keep modal view in sync with state changes
+  useEffect(() => {
+    if (selectedBooking) {
+      const updated = globalBookings.find((b) => b.id === selectedBooking.id);
+      if (updated && JSON.stringify(updated) !== JSON.stringify(selectedBooking)) {
+        setSelectedBooking(updated);
+      }
+    }
+  }, [globalBookings]);
+
+  // Look up client details
+  const getClientDetails = (booking: GlobalBooking) => {
+    const matched = users.find(
+      (u) =>
+        u.id === booking.clientUserId ||
+        u.name.toLowerCase() === booking.clientName.toLowerCase()
+    );
+    return {
+      phone: matched?.phone || '+20 10 9988 7766',
+      email: matched?.email || `${booking.clientName.toLowerCase().replace(/\s+/g, '')}@automate.com`,
+      role: matched?.role || 'Client',
+      status: matched?.status || 'Active',
+    };
+  };
+
+  // Look up mechanic details
+  const getMechanicDetails = (booking: GlobalBooking) => {
+    const matched = mechanicsRegistry.find(
+      (m) =>
+        m.id === booking.mechanicId ||
+        m.name.toLowerCase() === booking.mechanicName.toLowerCase()
+    );
+    return {
+      specialization: matched?.specialization || 'General Repair & Diagnostic',
+      garage: matched?.garageName || 'Automate Partner Hub',
+      rating: matched?.rating || 4.9,
+    };
+  };
+
+  const openBookingModal = (booking: GlobalBooking) => {
+    setSelectedBooking(booking);
+    setEditingInvoice(
+      booking.invoice || {
+        parts: [],
+        laborTotal: 0,
+        isPaid: false,
+      }
+    );
+    setPartName('');
+    setPartPrice('');
+  };
+
+  const handleAddPart = () => {
+    if (!partName.trim() || partPrice === '' || partPrice <= 0 || !editingInvoice) return;
+    const newPart = {
+      id: 'part_' + Math.random().toString(36).substr(2, 9),
+      name: partName.trim(),
+      price: Number(partPrice),
+    };
+    setEditingInvoice({
+      ...editingInvoice,
+      parts: [...editingInvoice.parts, newPart],
+    });
+    setPartName('');
+    setPartPrice('');
+  };
+
+  const handleRemovePart = (partId: string) => {
+    if (!editingInvoice) return;
+    setEditingInvoice({
+      ...editingInvoice,
+      parts: editingInvoice.parts.filter((p) => p.id !== partId),
+    });
+  };
+
+  const handleSaveInvoice = () => {
+    if (!selectedBooking || !editingInvoice) return;
+    updateBookingInvoice(selectedBooking.id, editingInvoice);
+    addToast({
+      type: 'success',
+      title: 'Invoice Saved',
+      message: `Invoice for booking #${selectedBooking.id.toUpperCase()} has been updated successfully.`,
+    });
+  };
+
+  const getPrice = (serviceType: string): string => {
+    const price = SERVICE_PRICES[serviceType] || SERVICE_PRICES['Default Service'] || 1500;
+    return `EGP ${price.toLocaleString()}`;
+  };
+
+  const getInvoiceTotal = (booking: GlobalBooking, currentInvoice: typeof editingInvoice) => {
+    const basePrice = SERVICE_PRICES[booking.serviceType] || SERVICE_PRICES['Default Service'] || 1500;
+    const partsTotal = currentInvoice?.parts.reduce((sum, p) => sum + p.price, 0) || 0;
+    const labor = currentInvoice?.laborTotal || 0;
+    return basePrice + partsTotal + labor;
+  };
+
+  // Helper to map DB status to Kanban column
+  const getColumnForStatus = (status: string): ColumnStatus | null => {
+    switch (status) {
+      case 'Pending':
+        return 'PENDING';
+      case 'Confirmed':
+      case 'Waiting for Repair':
+        return 'WAITING_FOR_REPAIR';
+      case 'In-Progress':
+      case 'Checked-In':
+      case 'Under Repair':
+        return 'UNDER_REPAIR';
+      case 'Ready for Pickup':
+        return 'READY_FOR_PICKUP';
+      case 'Cancelled':
+        return 'CANCELLED';
+      default:
+        return null; // Completed doesn't show in active Kanban board columns
+    }
+  };
+
+  // Status progression map
+  const advanceStatus = (booking: GlobalBooking) => {
+    let nextStatus: GlobalBooking['status'] | null = null;
+    let actionLabel = '';
+
+    if (booking.status === 'Pending') {
+      nextStatus = 'Waiting for Repair';
+      actionLabel = 'marked as waiting for repair';
+    } else if (booking.status === 'Confirmed' || booking.status === 'Waiting for Repair') {
+      nextStatus = 'Under Repair';
+      actionLabel = 'started repair';
+    } else if (booking.status === 'In-Progress' || booking.status === 'Checked-In' || booking.status === 'Under Repair') {
+      nextStatus = 'Ready for Pickup';
+      actionLabel = 'completed and marked ready for pickup';
+    } else if (booking.status === 'Ready for Pickup') {
+      nextStatus = 'Completed';
+      actionLabel = 'marked as picked up and closed';
+    }
+
+    if (nextStatus) {
+      advanceBookingStatus(booking.id, nextStatus, booking.clientUserId, booking.serviceType);
+      addToast({
+        type: 'success',
+        title: 'Status Advanced',
+        message: `Booking #${booking.id.toUpperCase()} has been ${actionLabel}.`,
+      });
+    }
+  };
+
+  const cancelBooking = (booking: GlobalBooking) => {
+    advanceBookingStatus(booking.id, 'Cancelled', booking.clientUserId, booking.serviceType);
+    addToast({
+      type: 'info',
+      title: 'Booking Cancelled',
+      message: `Booking #${booking.id.toUpperCase()} was cancelled by system administrator.`,
+    });
+  };
+
+  const handleModalAdvance = () => {
+    if (!selectedBooking) return;
+    advanceStatus(selectedBooking);
+  };
+
+  const handleModalCancel = () => {
+    if (!selectedBooking) return;
+    cancelBooking(selectedBooking);
+    setSelectedBooking(null);
+  };
+
+  const STATUS_MAP: Record<ColumnStatus, GlobalBooking['status']> = {
+    PENDING: 'Pending',
+    WAITING_FOR_REPAIR: 'Waiting for Repair',
+    UNDER_REPAIR: 'Under Repair',
+    READY_FOR_PICKUP: 'Ready for Pickup',
+    CANCELLED: 'Cancelled',
+  };
+
+  const handleDragStart = (e: React.DragEvent, bookingId: string) => {
+    e.dataTransfer.setData('text/plain', bookingId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, colId: ColumnStatus) => {
+    e.preventDefault();
+  };
+
+  const handleDragEnter = (e: React.DragEvent, colId: ColumnStatus) => {
+    e.preventDefault();
+    setIsDraggingOverCol((prev) => ({ ...prev, [colId]: true }));
+  };
+
+  const handleDragLeave = (e: React.DragEvent, colId: ColumnStatus) => {
+    e.preventDefault();
+    setIsDraggingOverCol((prev) => ({ ...prev, [colId]: false }));
+  };
+
+  const handleDrop = (e: React.DragEvent, colId: ColumnStatus) => {
+    e.preventDefault();
+    setIsDraggingOverCol((prev) => ({ ...prev, [colId]: false }));
+
+    const bookingId = e.dataTransfer.getData('text/plain');
+    const booking = globalBookings.find((b) => b.id === bookingId);
+    if (!booking) return;
+
+    const targetStatus = STATUS_MAP[colId];
+    if (booking.status !== targetStatus) {
+      advanceBookingStatus(booking.id, targetStatus, booking.clientUserId, booking.serviceType);
+      addToast({
+        type: 'success',
+        title: 'Booking Relocated',
+        message: `Booking #${booking.id.toUpperCase()} moved to "${targetStatus}".`,
+      });
+    }
+  };
+
+  // Group columns
+  const columns: { id: ColumnStatus; label: string; bg: string; border: string; text: string }[] = [
+    { id: 'PENDING', label: 'Pending', bg: 'bg-slate-50', border: 'border-slate-200/80', text: 'text-slate-500' },
+    { id: 'WAITING_FOR_REPAIR', label: 'Waiting for Repair', bg: 'bg-blue-50/20', border: 'border-blue-100', text: 'text-blue-600' },
+    { id: 'UNDER_REPAIR', label: 'Under Repair', bg: 'bg-purple-50/20', border: 'border-purple-100', text: 'text-purple-600' },
+    { id: 'READY_FOR_PICKUP', label: 'Ready for Pickup', bg: 'bg-green-50/20', border: 'border-green-100', text: 'text-green-600' },
+    { id: 'CANCELLED', label: 'Cancelled', bg: 'bg-red-50/20', border: 'border-red-100', text: 'text-[#E62424]' },
+  ];
+
+  if (!hydrated) {
+    return (
+      <div className="flex flex-col h-96 bg-[#F8FAFC] items-center justify-center font-sans">
+        <div className="w-10 h-10 border-3 border-slate-200 border-t-slate-900 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-full bg-[#F8FAFC] text-slate-900">
-      {/* ── Page Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <div>
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
-            <Link href="/dashboard" className="flex items-center gap-1 hover:text-slate-900 transition-colors">
-              <Home className="w-3 h-3" />
-              Dashboard
-            </Link>
-            <ChevronRight className="w-3 h-3" />
-            <span className="text-slate-900">Bookings</span>
-          </nav>
-          <h1 className="text-3xl font-display text-slate-950">Bookings &amp; Service History</h1>
-          <p className="text-sm text-slate-500 font-semibold mt-1">
-            Track all your mechanic appointments, service records, and repair statuses.
-          </p>
-        </div>
-        <Link
-          href="/booking"
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#E62424] hover:bg-red-700 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-md shadow-red-500/15 transition-all active:scale-[0.98] flex-shrink-0"
-        >
-          <Wrench className="w-4 h-4" />
-          Book a Mechanic
-        </Link>
+    <div className="space-y-10">
+
+      {/* HEADER SECTION */}
+      <div>
+        <span className="text-[10px] font-black uppercase text-[#E62424] bg-red-50 px-3 py-1 rounded-full tracking-wider">
+          Workshop Logistics Control
+        </span>
+        <h1 className="text-3xl font-black text-slate-900 tracking-tight mt-3 uppercase">Bookings Board</h1>
+        <p className="text-xs font-semibold text-slate-400 mt-0.5">
+          Active appointments workflow board managing client service allocations.
+        </p>
       </div>
 
-      {/* ── Stats Strip ── */}
-      {appointments.length > 0 && <StatsStrip appointments={appointments} />}
+      {/* KANBAN GRID */}
+      <div className="flex gap-6 overflow-x-auto pb-6 items-start min-w-full scrollbar-thin">
+        {columns.map((col) => {
+          const colBookings = globalBookings.filter((b) => getColumnForStatus(b.status) === col.id);
 
-      {/* ── Filter Tabs ── */}
-      {appointments.length > 0 && (
-        <div className="flex items-center gap-2 flex-wrap mb-6">
-          {FILTERS.map((f) => {
-            const count = filterAppointments(appointments, f).length;
-            const isActive = activeFilter === f;
-            return (
-              <button
-                key={f}
-                onClick={() => setActiveFilter(f)}
-                className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
-                  isActive
-                    ? 'bg-slate-900 text-white shadow-sm'
-                    : 'bg-white border border-slate-200 text-slate-500 hover:text-slate-900 hover:border-slate-300'
+          return (
+            <div
+              key={col.id}
+              className={`flex-1 min-w-[270px] shrink-0 p-5 rounded-[28px] border ${col.bg} ${col.border} min-h-[550px] flex flex-col space-y-4 transition-all duration-300 ${isDraggingOverCol[col.id]
+                ? 'ring-2 ring-slate-900 border-transparent bg-slate-100/50 scale-[1.01]'
+                : ''
                 }`}
-              >
-                {f}
-                {f !== 'All' && count > 0 && (
-                  <span
-                    className={`px-1.5 py-0.5 rounded-full text-[9px] font-black ${
-                      isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-                    }`}
-                  >
-                    {count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
+              onDragOver={(e) => handleDragOver(e, col.id)}
+              onDragEnter={(e) => handleDragEnter(e, col.id)}
+              onDragLeave={(e) => handleDragLeave(e, col.id)}
+              onDrop={(e) => handleDrop(e, col.id)}
+            >
 
-      {/* ── Content ── */}
-      {appointments.length === 0 ? (
-        <EmptyState />
-      ) : sorted.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-20 bg-white border border-dashed border-slate-200 rounded-3xl"
-        >
-          <AlertCircle className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-          <p className="text-sm font-bold text-slate-400">No bookings match this filter.</p>
-          <button
-            onClick={() => setActiveFilter('All')}
-            className="mt-4 text-xs font-black text-[#E62424] hover:underline uppercase tracking-wider"
-          >
-            Clear Filter
-          </button>
-        </motion.div>
-      ) : (
-        <div className="space-y-4">
-          <AnimatePresence mode="wait">
-            {sorted.map((appt, i) => (
-              <BookingCard key={appt.id} appt={appt} index={i} />
-            ))}
-          </AnimatePresence>
+              {/* Column Title and Counter */}
+              <div className="flex items-center justify-between pb-2">
+                <span className={`text-[10px] font-black uppercase tracking-wider ${col.text}`}>
+                  {col.label}
+                </span>
+                <span className="text-[10px] font-black bg-white border border-slate-200 text-slate-900 px-2 py-0.5 rounded-full shadow-sm">
+                  {colBookings.length}
+                </span>
+              </div>
+
+              {/* Column Card Stack */}
+              <div className="space-y-4 flex-1 overflow-y-auto max-h-[600px] pr-1">
+                {colBookings.length > 0 ? (
+                  colBookings.map((booking) => (
+                    <div
+                      key={booking.id}
+                      draggable={true}
+                      onDragStart={(e) => handleDragStart(e, booking.id)}
+                      onClick={() => openBookingModal(booking)}
+                      className="bg-white border border-slate-200/60 p-5 rounded-2xl shadow-sm hover:border-slate-400 hover:shadow-md transition-all flex flex-col justify-between space-y-4 cursor-grab active:cursor-grabbing select-none animate-fade-in"
+                    >
+                      {/* Vehicle & Client Info */}
+                      <div>
+                        <div className="flex justify-between items-start gap-2">
+                          <span className="text-[9px] bg-slate-950 text-white font-black px-2 py-0.5 rounded uppercase tracking-wider">
+                            {booking.id.toUpperCase()}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-bold uppercase">
+                            {booking.scheduledAt}
+                          </span>
+                        </div>
+
+                        <h3 className="text-xs font-black text-slate-900 mt-3 uppercase tracking-tight font-sans">
+                          {booking.vehicle}
+                        </h3>
+                        <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                          Client: {booking.clientName}
+                        </p>
+                      </div>
+
+                      {/* Service Spec Card */}
+                      <div className="bg-slate-50 border border-slate-100 p-3 rounded-xl">
+                        <p className="text-[10px] font-black text-slate-900 uppercase tracking-tight">
+                          🔧 {booking.serviceType}
+                        </p>
+                        <p className="text-[9px] font-bold text-slate-400 mt-0.5 uppercase">
+                          Tech: {booking.mechanicName}
+                        </p>
+                      </div>
+
+                      {/* Pricing and Actions Layout */}
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                        <div>
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Base Rate</p>
+                          <p className="text-xs font-black text-slate-900 mt-0.5">
+                            {getPrice(booking.serviceType)}
+                          </p>
+                        </div>
+
+                        <div className="flex gap-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              cancelBooking(booking);
+                            }}
+                            className="p-2 border border-slate-200 hover:bg-red-50 hover:border-red-200 text-slate-400 hover:text-[#E62424] rounded-lg transition-colors cursor-pointer text-xs"
+                            title="Cancel Booking"
+                          >
+                            🚫
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              advanceStatus(booking);
+                            }}
+                            className="px-2.5 py-1.5 bg-slate-950 hover:bg-[#E62424] text-white text-[9px] font-black uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
+                          >
+                            {col.id === 'READY_FOR_PICKUP' ? 'Release' : 'Advance'}
+                          </button>
+                        </div>
+                      </div>
+
+                    </div>
+                  ))
+                ) : (
+                  <div className="h-40 border border-dashed border-slate-200 rounded-2xl flex items-center justify-center text-center p-4">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      No active slots
+                    </p>
+                  </div>
+                )}
+              </div>
+
+            </div>
+          );
+        })}
+      </div>
+
+      {/* BOOKING DETAILS & BILLING MODAL */}
+      {selectedBooking && editingInvoice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+
+          {/* Modal Container */}
+          <div className="bg-white w-full max-w-4xl rounded-[32px] shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+
+            {/* Header */}
+            <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] bg-slate-900 text-white font-black px-2 py-0.5 rounded uppercase tracking-wider font-mono">
+                    Booking ID: {selectedBooking.id.toUpperCase()}
+                  </span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${selectedBooking.status === 'Pending' ? 'bg-amber-50 text-amber-600 border border-amber-200/50' :
+                    selectedBooking.status === 'Confirmed' ? 'bg-blue-50 text-blue-600 border border-blue-200/50' :
+                      selectedBooking.status === 'In-Progress' || selectedBooking.status === 'Checked-In' ? 'bg-purple-50 text-purple-600 border border-purple-200/50' :
+                        selectedBooking.status === 'Ready for Pickup' ? 'bg-green-50 text-green-600 border border-green-200/50' :
+                          'bg-slate-100 text-slate-600 border border-slate-200/50'
+                    }`}>
+                    {selectedBooking.status}
+                  </span>
+                </div>
+                <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight mt-1">
+                  Appointment Details
+                </h2>
+              </div>
+              <button
+                onClick={() => setSelectedBooking(null)}
+                className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors font-black text-sm cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Content Body - Split View */}
+            <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+              {/* Left Column: Client & Vehicle Details */}
+              <div className="space-y-6">
+
+                {/* Client Profile */}
+                <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
+                    Client Information
+                  </h4>
+                  <div className="bg-slate-50 border border-slate-100 p-5 rounded-2xl space-y-3">
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-slate-400">Name</p>
+                      <p className="text-sm font-black text-slate-900 uppercase">{selectedBooking.clientName}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-slate-400">Phone</p>
+                      <p className="text-xs font-bold text-slate-700 font-mono">{getClientDetails(selectedBooking).phone}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-slate-400">Email Address</p>
+                      <p className="text-xs font-bold text-slate-700">{getClientDetails(selectedBooking).email}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Vehicle & Slot */}
+                <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
+                    Vehicle & Appointment Schedule
+                  </h4>
+                  <div className="bg-slate-50 border border-slate-100 p-5 rounded-2xl space-y-3">
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-slate-400">Vehicle Model</p>
+                      <p className="text-xs font-black text-slate-900 uppercase">{selectedBooking.vehicle}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-slate-400">Scheduled Time</p>
+                      <p className="text-xs font-bold text-slate-700 uppercase">{selectedBooking.scheduledAt}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Assigned Technician */}
+                <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
+                    Assigned Technician
+                  </h4>
+                  <div className="bg-slate-50 border border-slate-100 p-5 rounded-2xl space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[9px] font-black uppercase text-slate-400">Technician</p>
+                        <p className="text-xs font-black text-slate-900 uppercase">{selectedBooking.mechanicName}</p>
+                      </div>
+                      <span className="text-xs font-black text-amber-500 bg-amber-50 px-2 py-0.5 rounded border border-amber-200/50">
+                        ⭐ {getMechanicDetails(selectedBooking).rating}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-slate-400">Specialization</p>
+                      <p className="text-xs font-semibold text-slate-700">{getMechanicDetails(selectedBooking).specialization}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-slate-400">Workshop Garage</p>
+                      <p className="text-xs font-semibold text-slate-700 uppercase">{getMechanicDetails(selectedBooking).garage}</p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Right Column: Invoicing & Invoice Ledger */}
+              <div className="space-y-6 border-t lg:border-t-0 lg:border-l border-slate-100 lg:pl-8">
+                <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
+                    Invoicing & Financial Settlement
+                  </h4>
+
+                  <div className="bg-slate-50 border border-slate-100 p-6 rounded-2xl space-y-5">
+
+                    {/* Core Rate */}
+                    <div className="flex justify-between items-center pb-3 border-b border-slate-200/60">
+                      <div>
+                        <p className="text-[10px] font-black text-slate-900 uppercase">Service Base Rate</p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase mt-0.5">{selectedBooking.serviceType}</p>
+                      </div>
+                      <span className="text-xs font-black text-slate-900">{getPrice(selectedBooking.serviceType)}</span>
+                    </div>
+
+                    {/* Parts Breakdown */}
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-slate-400 mb-2">Parts & Materials</p>
+
+                      {editingInvoice.parts.length > 0 ? (
+                        <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
+                          {editingInvoice.parts.map((p) => (
+                            <div key={p.id} className="flex justify-between items-center bg-white p-2 rounded-xl border border-slate-200/50 text-[11px]">
+                              <span className="font-bold text-slate-800 uppercase">{p.name}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-black text-slate-950">EGP {p.price.toLocaleString()}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemovePart(p.id)}
+                                  className="text-slate-400 hover:text-red-500 font-bold px-1 cursor-pointer transition-colors"
+                                  title="Remove part"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-[10px] text-slate-400 italic font-medium">No parts cataloged on this ticket.</p>
+                      )}
+
+                      {/* Add Part Form */}
+                      <div className="flex gap-2 mt-3">
+                        <input
+                          type="text"
+                          placeholder="PART NAME"
+                          value={partName}
+                          onChange={(e) => setPartName(e.target.value)}
+                          className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-[10px] font-bold uppercase placeholder-slate-400 focus:outline-none focus:border-slate-900"
+                        />
+                        <input
+                          type="number"
+                          placeholder="PRICE (EGP)"
+                          value={partPrice}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setPartPrice(val === '' ? '' : parseFloat(val) || 0);
+                          }}
+                          className="w-24 px-3 py-2 bg-white border border-slate-200 rounded-lg text-[10px] font-bold placeholder-slate-400 focus:outline-none focus:border-slate-900"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddPart}
+                          className="px-3 py-2 bg-slate-950 hover:bg-slate-800 text-white text-[10px] font-black uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Labor Total */}
+                    <div className="pt-2">
+                      <label className="text-[9px] font-black uppercase text-slate-400 block mb-1">
+                        Labor Surcharge (EGP)
+                      </label>
+                      <input
+                        type="number"
+                        value={editingInvoice.laborTotal}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value) || 0;
+                          setEditingInvoice({
+                            ...editingInvoice,
+                            laborTotal: val,
+                          });
+                        }}
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-[10px] font-bold focus:outline-none focus:border-slate-900"
+                      />
+                    </div>
+
+                    {/* Payment Status Checkbox */}
+                    <div className="flex items-center justify-between pt-2">
+                      <div>
+                        <p className="text-[9px] font-black uppercase text-slate-400">Payment Status</p>
+                        <p className="text-[10px] font-bold text-slate-500 mt-0.5">Toggle customer invoice payment node</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setEditingInvoice({
+                            ...editingInvoice,
+                            isPaid: !editingInvoice.isPaid,
+                          })
+                        }
+                        className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider border transition-colors cursor-pointer ${editingInvoice.isPaid
+                          ? 'bg-green-50 border-green-200 text-green-600'
+                          : 'bg-red-50 border-red-200 text-[#E62424]'
+                          }`}
+                      >
+                        {editingInvoice.isPaid ? '✓ Paid' : '✗ Unpaid'}
+                      </button>
+                    </div>
+
+                    {/* Calculations Summary */}
+                    <div className="pt-4 border-t border-slate-200 flex justify-between items-center">
+                      <div>
+                        <p className="text-[10px] font-black text-slate-900 uppercase">Calculated Total</p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase mt-0.5">Includes parts + labor + base rate</p>
+                      </div>
+                      <span className="text-sm font-black text-[#E62424]">
+                        EGP {getInvoiceTotal(selectedBooking, editingInvoice).toLocaleString()}
+                      </span>
+                    </div>
+
+                    {/* Save Button */}
+                    <button
+                      type="button"
+                      onClick={handleSaveInvoice}
+                      className="w-full py-3 bg-slate-950 hover:bg-slate-800 text-white text-[10px] font-black uppercase tracking-wider rounded-xl transition-colors cursor-pointer mt-2"
+                    >
+                      Save Financial Invoice Updates
+                    </button>
+
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Footer Action Bar */}
+            <div className="px-8 py-6 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={handleModalCancel}
+                className="px-4 py-3 border border-slate-200 hover:bg-red-50 hover:border-red-200 text-slate-600 hover:text-[#E62424] text-[10px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+              >
+                🚫 Cancel Booking
+              </button>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedBooking(null)}
+                  className="px-4 py-3 bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                >
+                  Close Panel
+                </button>
+
+                {selectedBooking.status !== 'Completed' && selectedBooking.status !== 'Cancelled' && (
+                  <button
+                    type="button"
+                    onClick={handleModalAdvance}
+                    className="px-4 py-3 bg-slate-950 hover:bg-[#E62424] text-white text-[10px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                  >
+                    {selectedBooking.status === 'Ready for Pickup' ? 'Release Vehicle' : 'Advance Workflow Status'}
+                  </button>
+                )}
+              </div>
+            </div>
+
+          </div>
         </div>
       )}
     </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Wrapped Export                                                      */
-/* ------------------------------------------------------------------ */
-export default function BookingsPage() {
-  return (
-    <WorkspaceLayout>
-      <Suspense
-        fallback={
-          <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
-            <div className="w-10 h-10 border-[3px] border-slate-200 border-t-[#E62424] rounded-full animate-spin" />
-          </div>
-        }
-      >
-        <BookingsPageContent />
-      </Suspense>
-    </WorkspaceLayout>
   );
 }

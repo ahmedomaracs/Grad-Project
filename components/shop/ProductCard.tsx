@@ -146,6 +146,15 @@ export function ProductCard({ product, index }: ProductCardProps) {
           </div>
           <span className="text-[9px] font-medium text-slate-400 font-mono">({product.reviewCount || '1.2k'})</span>
         </div>
+        
+        {/* Compatible Brand Badge */}
+        {product.compatibleBrand && (
+          <div className="mt-1 flex items-center gap-1">
+            <span className="text-[10px] font-bold text-slate-500 bg-slate-100/80 px-2 py-0.5 rounded-md border border-slate-200">
+              Compatible: {product.compatibleBrand}
+            </span>
+          </div>
+        )}
         {/* Fitment Verification Badge */}
         {fitmentVerified && (
           <div className="mt-1.5 flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200/60 text-emerald-700 text-[9px] font-bold">

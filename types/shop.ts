@@ -13,6 +13,7 @@ export interface Product {
   discount?: string;
   description: string;
   tags: string[];
+  compatibleBrand?: string;
   characteristics?: {
     category: string;
     technicalSpecs: { label: string; value: string }[];

@@ -455,7 +455,7 @@ export const useAuthStore = create<AuthStore>()(
       login: (email: string, name?: string, isNewUser?: boolean, token?: string) => {
         let resolvedRole: UserRole = 'Client';
         const lowerEmail = email.toLowerCase();
-        if (lowerEmail.includes('m4@') || lowerEmail.startsWith('m1@') || lowerEmail.startsWith('m2@') || lowerEmail.startsWith('m3@') || lowerEmail.startsWith('m4@')) {
+        if (lowerEmail.includes('ahmedmechanic@') || lowerEmail.startsWith('m3@') || lowerEmail.startsWith('m4@')) {
           resolvedRole = 'Mechanic';
         } else if (lowerEmail.includes('cs') || lowerEmail.includes('cs')) {
           resolvedRole = 'Merchant';
@@ -713,7 +713,7 @@ export const useAuthStore = create<AuthStore>()(
             'New Order Received 🛒',
             `New Order #${dbOrder.id} received from ${clientName} for ${item.productLabel}.`,
             'order',
-            '/dashboard/merchant'
+            '/merchant'
           );
           return {
             id: dbOrder.id,

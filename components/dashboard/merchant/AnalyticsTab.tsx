@@ -6,8 +6,8 @@ import { BarChart3, TrendingUp, DollarSign } from 'lucide-react';
 
 export function AnalyticsTab({ merchantId }: { merchantId: string }) {
   const { globalOrders, globalProducts } = useLocalDB();
-  const orders = globalOrders.filter(o => o.merchantId === merchantId && o.status !== 'Cancelled');
-  const products = globalProducts.filter(p => p.merchantId === merchantId);
+  const orders = (globalOrders || []).filter(o => o.merchantId === merchantId && o.status !== 'Cancelled');
+  const products = (globalProducts || []).filter(p => p.merchantId === merchantId);
 
   // Compute dummy metrics
   const totalRevenue = orders.reduce((sum, o) => sum + o.totalPrice, 0);
@@ -35,7 +35,7 @@ export function AnalyticsTab({ merchantId }: { merchantId: string }) {
             </div>
             <span className="font-bold text-sm uppercase tracking-wide">Net Profit</span>
           </div>
-          <p className="text-3xl font-black text-gray-900">${netProfit.toFixed(2)}</p>
+          <p className="text-3xl font-black text-gray-900">EGP {netProfit.toFixed(2)}</p>
         </div>
         
         <div className="bg-white p-6 rounded-3xl border border-gray-150 shadow-sm flex flex-col justify-between">
@@ -45,7 +45,7 @@ export function AnalyticsTab({ merchantId }: { merchantId: string }) {
             </div>
             <span className="font-bold text-sm uppercase tracking-wide">Total Revenue</span>
           </div>
-          <p className="text-3xl font-black text-gray-900">${totalRevenue.toFixed(2)}</p>
+          <p className="text-3xl font-black text-gray-900">EGP {totalRevenue.toFixed(2)}</p>
         </div>
         
         <div className="bg-white p-6 rounded-3xl border border-gray-150 shadow-sm flex flex-col justify-between">
@@ -56,7 +56,7 @@ export function AnalyticsTab({ merchantId }: { merchantId: string }) {
             <span className="font-bold text-sm uppercase tracking-wide">Avg Order Value</span>
           </div>
           <p className="text-3xl font-black text-gray-900">
-            ${orders.length > 0 ? (totalRevenue / orders.length).toFixed(2) : '0.00'}
+            EGP {orders.length > 0 ? (totalRevenue / orders.length).toFixed(2) : '0.00'}
           </p>
         </div>
       </div>
@@ -72,7 +72,7 @@ export function AnalyticsTab({ merchantId }: { merchantId: string }) {
                   style={{ height: `${(d.val / 120) * 100}%` }}
                 >
                   <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-bold py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                    ${d.val}
+                    EGP {d.val}
                   </div>
                 </div>
                 <span className="text-xs font-bold text-gray-500">{d.day}</span>
@@ -95,7 +95,7 @@ export function AnalyticsTab({ merchantId }: { merchantId: string }) {
                     <p className="text-xs text-gray-500">{p.category}</p>
                   </div>
                 </div>
-                <p className="text-sm font-black text-[#E12F2F]">${p.basePrice.toFixed(2)}</p>
+                <p className="text-sm font-black text-[#E12F2F]">EGP {p.basePrice.toFixed(2)}</p>
               </div>
             ))}
             {products.length === 0 && (

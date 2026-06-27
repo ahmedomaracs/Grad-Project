@@ -8,17 +8,14 @@ import { useAuthStore } from '../../store/authStore';
 import { Logo } from '../ui/Logo';
 
 const MERCHANT_NAV_LINKS = [
-  { href: '/dashboard/merchant?tab=overview', icon: LayoutDashboard, label: 'Overview', tab: 'overview' },
-  { href: '/dashboard/merchant?tab=inventory', icon: Package, label: 'Inventory', tab: 'inventory' },
-  { href: '/dashboard/merchant?tab=orders', icon: ShoppingCart, label: 'Orders', tab: 'orders' },
-  { href: '/dashboard/merchant?tab=analytics', icon: BarChart3, label: 'Analytics', tab: 'analytics' },
-  { href: '/dashboard/merchant?tab=customers', icon: Users, label: 'Customers', tab: 'customers' },
+  { href: '/merchant', icon: LayoutDashboard, label: 'Overview', tab: 'overview' },
+  { href: '/merchant/inventory', icon: Package, label: 'Inventory', tab: 'inventory' },
+  { href: '/merchant/orders', icon: ShoppingCart, label: 'Orders', tab: 'orders' },
+  { href: '/merchant/customers', icon: Users, label: 'Customers', tab: 'customers' },
 ];
 
 export function MerchantSidebar() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const currentTab = searchParams.get('tab') || 'overview';
   const { logout } = useAuthStore();
 
   return (
@@ -29,17 +26,16 @@ export function MerchantSidebar() {
 
       <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
         {MERCHANT_NAV_LINKS.map((link) => {
-          const isActive = currentTab === link.tab;
-          
+          const isActive = pathname === link.href || (link.tab === 'overview' && pathname === '/merchant');
+
           return (
             <Link
               key={link.href}
               href={link.href}
-              className={`flex items-center gap-3 px-4 py-3 text-sm font-bold transition-all duration-200 relative ${
-                isActive
+              className={`flex items-center gap-3 px-4 py-3 text-sm font-bold transition-all duration-200 relative ${isActive
                   ? 'bg-red-50 text-[#E62424]'
                   : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-2xl'
-              }`}
+                }`}
             >
               {isActive && (
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-[#E62424] rounded-r-full" />

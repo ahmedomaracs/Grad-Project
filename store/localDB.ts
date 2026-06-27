@@ -69,6 +69,18 @@ export interface GlobalProduct {
   workshopDeliveryEnabled: boolean;
   isVisible: boolean;
   createdAt: string;
+
+  // Automotive extensions
+  image?: string;
+  vinCompatibilityPattern?: string;
+  characteristics?: {
+    outerDiameterMM?: number;
+    thicknessMM?: number;
+    boltHoleCircleMM?: number;
+    lengthMM?: number;
+    threadSize?: string;
+  };
+  compatibilityTags?: string[];
 }
 
 export interface GlobalNotification {
@@ -127,6 +139,21 @@ const SEED_MECHANICS: MechanicProfile[] = [
     available: true,
     joinedAt: 'May 2026',
   },
+];
+
+const SEED_PRODUCTS: GlobalProduct[] = [
+  { id: 'p1', merchantId: 'ahmed.omara.cs@gmaill.com', title: 'NGK Iridium IX Spark Plugs', brand: 'NGK', mpn: 'IX-11', category: 'Engine', basePrice: 5000, salePrice: 4500, itemCost: 3000, fitment: 'Universal', weight: 0.5, condition: 'New', sku: 'NGK-IX', stockQuantity: 24, lowStockThreshold: 5, workshopDeliveryEnabled: true, isVisible: true, createdAt: '2026-06-20T10:00:00.000Z' },
+  { id: 'p2', merchantId: 'ahmed.omara.cs@gmaill.com', title: 'Brembo Premium Ceramic Brake Pads', brand: 'Brembo', mpn: 'BR-22', category: 'Brakes', basePrice: 8500, salePrice: 8500, itemCost: 5000, fitment: 'BMW', weight: 2.5, condition: 'New', sku: 'BR-PAD-01', stockQuantity: 12, lowStockThreshold: 3, workshopDeliveryEnabled: true, isVisible: true, createdAt: '2026-06-21T10:00:00.000Z' },
+  { id: 'p3', merchantId: 'ahmed.omara.cs@gmaill.com', title: 'Michelin Pilot Sport 4 S', brand: 'Michelin', mpn: 'MI-4S', category: 'Tires', basePrice: 18000, salePrice: 18000, itemCost: 12000, fitment: 'Universal', weight: 12, condition: 'New', sku: 'MI-PS4S', stockQuantity: 40, lowStockThreshold: 10, workshopDeliveryEnabled: false, isVisible: true, createdAt: '2026-06-22T10:00:00.000Z' }
+];
+
+const SEED_ORDERS: GlobalOrder[] = [
+  { id: 'o1', clientUserId: 'c1', clientName: 'John Doe', merchantId: 'ahmed.omara.cs@gmaill.com', merchantName: 'Turbo Parts Inc.', productLabel: 'NGK Iridium IX Spark Plugs', totalPrice: 4500, deliveryType: 'standard', status: 'Shipped', createdAt: '2026-06-24T10:00:00.000Z' },
+  { id: 'o2', clientUserId: 'c2', clientName: 'Alice Smith', merchantId: 'ahmed.omara.cs@gmaill.com', merchantName: 'Turbo Parts Inc.', productLabel: 'Brembo Premium Ceramic Brake Pads', totalPrice: 8500, deliveryType: 'workshop', status: 'Processing', createdAt: '2026-06-25T10:00:00.000Z' },
+  { id: 'o3', clientUserId: 'c1', clientName: 'John Doe', merchantId: 'ahmed.omara.cs@gmaill.com', merchantName: 'Turbo Parts Inc.', productLabel: 'Michelin Pilot Sport 4 S', totalPrice: 36000, deliveryType: 'standard', status: 'Delivered', createdAt: '2026-06-21T10:00:00.000Z' },
+  { id: 'o4', clientUserId: 'c3', clientName: 'Omar Hassan', merchantId: 'ahmed.omara.cs@gmaill.com', merchantName: 'Turbo Parts Inc.', productLabel: 'Brembo Premium Ceramic Brake Pads', totalPrice: 17000, deliveryType: 'standard', status: 'Delivered', createdAt: '2026-06-16T10:00:00.000Z' },
+  // Duplicate for merchant_demo fallback
+  { id: 'o5', clientUserId: 'c1', clientName: 'John Doe', merchantId: 'merchant_demo', merchantName: 'Demo Merchant', productLabel: 'NGK Iridium IX Spark Plugs', totalPrice: 4500, deliveryType: 'standard', status: 'Shipped', createdAt: '2026-06-24T10:00:00.000Z' },
 ];
 
 // ─── Store Interface ──────────────────────────────────────────────────────────
@@ -191,8 +218,8 @@ export const useLocalDB = create<LocalDBStore>()(
     (set, get) => ({
       mechanicsRegistry: SEED_MECHANICS,
       globalBookings: [],
-      globalOrders: [],
-      globalProducts: [],
+      globalOrders: SEED_ORDERS,
+      globalProducts: SEED_PRODUCTS,
       globalNotifications: [],
 
       // ── Mechanic Registry ──────────────────────────────────────────────────
@@ -282,7 +309,7 @@ export const useLocalDB = create<LocalDBStore>()(
           message: `Order #${id} from ${order.clientName} for ${order.productLabel}.`,
           type: 'order',
           unread: true,
-          link: '/dashboard/merchant',
+          link: '/merchant',
         });
         return newOrder;
       },

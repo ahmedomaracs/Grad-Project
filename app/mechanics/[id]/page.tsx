@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { WorkspaceLayout } from '../../../components/dashboard/WorkspaceLayout';
 import { useAuthStore, Mechanic } from '../../../store/authStore';
+import { useLocalDB } from '../../../store/localDB';
 import { Button } from '../../../components/ui/Button';
 
 // Mock Certifications list
@@ -43,11 +44,14 @@ export default function MechanicProfilePage({ params }: { params: Promise<{ id: 
   const mechanicId = resolvedParams.id;
 
   const { mechanics, toggleFavoriteMechanic, addTransaction, addNotification } = useAuthStore();
+  const mechanicsRegistry = useLocalDB((s) => s.mechanicsRegistry);
 
   const [mechanic, setMechanic] = useState<Mechanic | null>(null);
+  const [mechanicServices, setMechanicServices] = useState<Array<{id: string; name: string; price: number}>>([]);
+  
   const [bookingDate, setBookingDate] = useState('');
   const [bookingTime, setBookingTime] = useState('');
-  const [bookingService, setBookingService] = useState('Standard Diagnostics');
+  const [bookingServiceId, setBookingServiceId] = useState('');
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
   useEffect(() => {
@@ -55,8 +59,21 @@ export default function MechanicProfilePage({ params }: { params: Promise<{ id: 
     const found = mechanics.find((m) => m.id === mechanicId);
     if (found) {
       setMechanic(found);
+      
+      const registryProfile = mechanicsRegistry.find(m => m.email === found.name || m.id === mechanicId);
+      if (registryProfile && registryProfile.services) {
+        const enabledServices = registryProfile.services.filter(s => s.enabled);
+        if (enabledServices.length > 0) {
+          setMechanicServices(enabledServices);
+          setBookingServiceId(enabledServices[0].id);
+        }
+      }
     }
-  }, [mechanicId, mechanics]);
+  }, [mechanicId, mechanics, mechanicsRegistry]);
+
+  const selectedServiceObj = mechanicServices.find(s => s.id === bookingServiceId);
+  const bookingPrice = selectedServiceObj ? selectedServiceObj.price : 1500;
+  const bookingServiceName = selectedServiceObj ? selectedServiceObj.name : 'Standard Diagnostics';
 
   if (!mechanic) {
     return (
@@ -74,10 +91,10 @@ export default function MechanicProfilePage({ params }: { params: Promise<{ id: 
   const handleBookSession = () => {
     if (!bookingDate || !bookingTime) return;
 
-    addTransaction('booking', `Booking Prep: ${mechanic.name}`, -49.00);
+    addTransaction('booking', `Booking Prep: ${mechanic.name}`, -bookingPrice);
     addNotification(
       'Service Booked 🚀',
-      `Diagnostics session registered on ${bookingDate} at ${bookingTime} with ${mechanic.name}.`,
+      `${bookingServiceName} registered on ${bookingDate} at ${bookingTime} with ${mechanic.name}.`,
       'booking'
     );
     setBookingSuccess(true);
@@ -161,11 +178,19 @@ export default function MechanicProfilePage({ params }: { params: Promise<{ id: 
             <div className="bg-white rounded-3xl border border-gray-150 p-6">
               <h3 className="text-base font-bold text-gray-900 mb-4">Core Specialist Expertise</h3>
               <div className="flex flex-wrap gap-2">
-                {mechanic.specialties.map((spec) => (
-                  <span key={spec} className="px-3.5 py-1.5 rounded-xl bg-gray-50 border border-gray-250 text-gray-600 text-xs font-bold shadow-sm">
-                    {spec}
-                  </span>
-                ))}
+                {mechanicServices.length > 0 ? (
+                  mechanicServices.map((spec) => (
+                    <span key={spec.id} className="px-3.5 py-1.5 rounded-xl bg-gray-50 border border-gray-250 text-gray-600 text-xs font-bold shadow-sm">
+                      {spec.name}
+                    </span>
+                  ))
+                ) : (
+                  mechanic.specialties.map((spec) => (
+                    <span key={spec} className="px-3.5 py-1.5 rounded-xl bg-gray-50 border border-gray-250 text-gray-600 text-xs font-bold shadow-sm">
+                      {spec}
+                    </span>
+                  ))
+                )}
               </div>
             </div>
 
@@ -214,13 +239,17 @@ export default function MechanicProfilePage({ params }: { params: Promise<{ id: 
                       <div className="space-y-1">
                         <label className="text-[10px] font-bold text-gray-400 uppercase">Service Type</label>
                         <select
-                          value={bookingService}
-                          onChange={(e) => setBookingService(e.target.value)}
+                          value={bookingServiceId}
+                          onChange={(e) => setBookingServiceId(e.target.value)}
                           className="w-full h-11 px-4 rounded-xl border border-gray-250 bg-gray-50/50 text-sm font-semibold outline-none focus:border-[#E12F2F]/40 cursor-pointer"
                         >
-                          <option value="Diagnostics Inspection">Diagnostics Session ($49.00)</option>
-                          <option value="Performance Tuning">Custom Calibration ($299.00)</option>
-                          <option value="Brake Pad Bleeding">Brake Bleed Upgrade ($149.00)</option>
+                          {mechanicServices.length > 0 ? (
+                            mechanicServices.map(s => (
+                              <option key={s.id} value={s.id}>{s.name} (EGP {s.price})</option>
+                            ))
+                          ) : (
+                            <option value="default">Standard Diagnostics (EGP 1500)</option>
+                          )}
                         </select>
                       </div>
 
@@ -254,7 +283,7 @@ export default function MechanicProfilePage({ params }: { params: Promise<{ id: 
                           size="lg"
                           className="h-12 bg-[#E12F2F] text-white hover:bg-red-600 shadow-md shadow-red-500/25 border-none font-bold text-sm"
                         >
-                          Book Appointment ($49)
+                          Book Appointment (EGP {bookingPrice})
                         </Button>
                       </div>
                     </div>

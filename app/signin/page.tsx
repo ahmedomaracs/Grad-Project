@@ -89,7 +89,7 @@ function SigninPageContent() {
               router.push('/mechanic');
               break;
             case 'MERCHANT':
-              router.push('/dashboard/merchant');
+              router.push('/merchant');
               break;
             default:
               router.push('/dashboard');
@@ -323,7 +323,7 @@ function SigninPageContent() {
                                 router.push('/mechanic');
                                 break;
                               case 'MERCHANT':
-                                router.push('/dashboard/merchant');
+                                router.push('/merchant');
                                 break;
                               default:
                                 router.push('/dashboard');

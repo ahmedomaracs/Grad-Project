@@ -105,7 +105,7 @@ export function FilterDrawer({ isOpen, onClose, filters, onChange, onReset }: Fi
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <div className="flex-1">
-                      <label className="text-xs text-gray-500 mb-1 block">Min ($)</label>
+                      <label className="text-xs text-gray-500 mb-1 block">Min (EGP)</label>
                       <input
                         type="number"
                         value={filters.priceRange[0]}
@@ -114,7 +114,7 @@ export function FilterDrawer({ isOpen, onClose, filters, onChange, onReset }: Fi
                       />
                     </div>
                     <div className="flex-1">
-                      <label className="text-xs text-gray-500 mb-1 block">Max ($)</label>
+                      <label className="text-xs text-gray-500 mb-1 block">Max (EGP)</label>
                       <input
                         type="number"
                         value={filters.priceRange[1]}
@@ -124,7 +124,7 @@ export function FilterDrawer({ isOpen, onClose, filters, onChange, onReset }: Fi
                     </div>
                   </div>
                   <div className="flex gap-2 flex-wrap">
-                    {[[0, 50], [50, 100], [100, 250], [250, 999]].map(([min, max]) => (
+                    {[[0, 2000], [2000, 5000], [5000, 15000], [15000, 100000]].map(([min, max]) => (
                       <motion.button
                         key={`${min}-${max}`}
                         whileTap={{ scale: 0.95 }}
@@ -136,7 +136,7 @@ export function FilterDrawer({ isOpen, onClose, filters, onChange, onReset }: Fi
                             : 'border-gray-200 text-gray-600 hover:border-[#E12F2F]/40 hover:text-[#E12F2F]'
                         )}
                       >
-                        ${min} – {max === 999 ? '999+' : `$${max}`}
+                        {min} – {max === 100000 ? '100,000+' : `${max}`}
                       </motion.button>
                     ))}
                   </div>

@@ -11,7 +11,7 @@ import { CartDrawer } from '../../components/shop/CartDrawer';
 import { FilterDrawer } from '../../components/shop/FilterDrawer';
 import { CartButton } from '../../components/shop/CartButton';
 import { PRODUCTS } from '../../constants/shop';
-import { FilterState } from '../../types/shop';
+import { FilterState, SortOption } from '../../types/shop';
 import { useAuthStore } from '../../store/authStore';
 import { Vehicle } from '../../store/authStore';
 
@@ -139,10 +139,22 @@ function ShopContent() {
     searchParams.get('category') || 'All'
   );
   const [selectedBrands, setSelectedBrands] = useState<string[]>(
-    searchParams.get('brand') ? [searchParams.get('brand')!] : ['Brembo']
+    searchParams.get('brand') ? [searchParams.get('brand')!] : []
   );
+
+  const availableBrandsForCategory = useMemo(() => {
+    const productsInCategory = selectedCategory === 'All'
+      ? PRODUCTS
+      : PRODUCTS.filter(p => p.category === selectedCategory);
+    const brands = new Set(productsInCategory.map(p => p.brand));
+    return Array.from(brands).sort();
+  }, [selectedCategory]);
+  const [minPrice, setMinPrice] = useState<number>(0);
   const [maxPrice, setMaxPrice] = useState<number>(100000);
+  const [debouncedMinPrice, setDebouncedMinPrice] = useState<number>(0);
   const [debouncedMaxPrice, setDebouncedMaxPrice] = useState<number>(100000);
+  const [inStockOnly, setInStockOnly] = useState<boolean>(false);
+  const [sortBy, setSortBy] = useState<SortOption>('featured');
   const [searchQuery, setSearchQuery] = useState<string>(searchParams.get('q') || '');
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(
     searchParams.get('vehicleId') || null
@@ -154,9 +166,12 @@ function ShopContent() {
 
   // ── Debounce the price slider (300ms) ──
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedMaxPrice(maxPrice), 300);
+    const t = setTimeout(() => {
+      setDebouncedMinPrice(minPrice);
+      setDebouncedMaxPrice(maxPrice);
+    }, 300);
     return () => clearTimeout(t);
-  }, [maxPrice]);
+  }, [minPrice, maxPrice]);
 
   // ── Sync filter state → URL params ──
   useEffect(() => {
@@ -206,20 +221,28 @@ function ShopContent() {
   // ── Vehicle for fitment filter ──
   const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId) ?? null;
 
-  // ── Filtered products (uses debouncedMaxPrice) ──
+  // ── Filtered products (uses debounced prices) ──
   const filteredProducts = useMemo(() => {
-    return PRODUCTS.filter((product) => {
+    let result = PRODUCTS.filter((product) => {
       const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
       const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(product.brand);
-      const matchesPrice = product.price <= debouncedMaxPrice;
+      const matchesPrice = product.price >= debouncedMinPrice && product.price <= debouncedMaxPrice;
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStock = !inStockOnly || product.inStock;
       // When a garage vehicle is selected, filter to compatible categories
       const compatibleCats = ['Brakes', 'Engine', 'Accessories', 'Lighting', 'Tires'];
       const matchesVehicle = !selectedVehicle || compatibleCats.includes(product.category);
-      return matchesCategory && matchesBrand && matchesPrice && matchesSearch && matchesVehicle;
+      return matchesCategory && matchesBrand && matchesPrice && matchesSearch && matchesStock && matchesVehicle;
     });
-  }, [selectedCategory, selectedBrands, debouncedMaxPrice, searchQuery, selectedVehicle]);
+
+    if (sortBy === 'price-asc') result.sort((a, b) => a.price - b.price);
+    else if (sortBy === 'price-desc') result.sort((a, b) => b.price - a.price);
+    else if (sortBy === 'rating') result.sort((a, b) => b.rating - a.rating);
+    else if (sortBy === 'newest') result.reverse();
+
+    return result;
+  }, [selectedCategory, selectedBrands, debouncedMinPrice, debouncedMaxPrice, searchQuery, selectedVehicle, inStockOnly, sortBy]);
 
   return (
     <div className="min-h-screen bg-[#F5F5F5] font-sans">
@@ -228,9 +251,28 @@ function ShopContent() {
       <FilterDrawer
         isOpen={filterDrawerOpen}
         onClose={() => setFilterDrawerOpen(false)}
-        filters={DEFAULT_FILTERS}
-        onChange={() => { }}
-        onReset={() => { }}
+        filters={{
+          category: selectedCategory,
+          search: searchQuery,
+          priceRange: [minPrice, maxPrice],
+          inStockOnly,
+          sortBy
+        }}
+        onChange={(newFilters) => {
+          if (newFilters.priceRange) {
+            setMinPrice(newFilters.priceRange[0]);
+            setMaxPrice(newFilters.priceRange[1]);
+          }
+          if (newFilters.inStockOnly !== undefined) setInStockOnly(newFilters.inStockOnly);
+          if (newFilters.sortBy) setSortBy(newFilters.sortBy);
+        }}
+        onReset={() => {
+          setMinPrice(0);
+          setMaxPrice(100000);
+          setInStockOnly(false);
+          setSortBy('featured');
+          setSelectedBrands([]);
+        }}
       />
 
       {/* ── HERO HEADER ── */}
@@ -439,7 +481,7 @@ function ShopContent() {
               <div className="mb-8">
                 <span className="text-xs font-bold tracking-wider uppercase text-slate-400 mb-3 block">Brands</span>
                 <div className="space-y-2">
-                  {['Brembo', 'Bosch', 'Philips', 'K&N'].map((brand) => (
+                  {availableBrandsForCategory.map((brand) => (
                     <label key={brand} className="flex items-center gap-3 cursor-pointer group">
                       <input
                         type="checkbox"

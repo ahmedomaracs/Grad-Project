@@ -4,8 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Car, ChevronDown, Check } from 'lucide-react';
 import { SearchBar } from './SearchBar';
-import { useShopFilterStore } from '../../store/shopFilterStore';
-import { useAuthStore, Vehicle } from '../../store/authStore';
+import { useShopFilterStore } from '@/store/shopFilterStore';
+import { useAuthStore, Vehicle } from '@/store/authStore';
 
 interface SearchControlDeckProps {
   onFilterOpen: () => void;
@@ -203,8 +203,8 @@ export function SearchControlDeck({
               key={cat}
               onClick={() => setActiveCategory(cat)}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${activeCategory === cat
-                  ? 'bg-[#E62424] text-white shadow-md shadow-red-500/10'
-                  : 'bg-white text-slate-600 border border-slate-100 hover:bg-slate-50'
+                ? 'bg-[#E62424] text-white shadow-md shadow-red-500/10'
+                : 'bg-white text-slate-600 border border-slate-100 hover:bg-slate-50'
                 }`}
             >
               {cat}

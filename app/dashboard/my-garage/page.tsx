@@ -315,7 +315,7 @@ function MyGarageContent() {
             Edit Info
           </button>
           <button
-            onClick={() => router.push('/services')}
+            onClick={() => router.push(`/booking?vehicleId=${vehicle.id}`)}
             className="flex-1 min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#E12F2F]/5 border border-[#E12F2F]/10 text-sm font-bold text-[#E12F2F] hover:bg-[#E12F2F]/10 transition-all outline-none cursor-pointer"
           >
             <Wrench className="w-3.5 h-3.5" />

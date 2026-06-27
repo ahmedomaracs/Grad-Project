@@ -45,7 +45,7 @@ export function Navbar() {
         router.push('/mechanic');
         break;
       case 'merchant':
-        router.push('/dashboard/merchant');
+        router.push('/merchant');
         break;
       case 'admin':
         router.push('/dashboard/admin');
