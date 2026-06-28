@@ -143,7 +143,7 @@ export function CartDrawer() {
                               <Plus className="w-3 h-3" />
                             </motion.button>
                           </div>
-                          <span className="font-bold text-gray-900 text-sm">EGP {(item.product.price * item.quantity).toFixed(2)}</span>
+                          <span className="font-bold text-gray-900 text-sm">EGP {(item.product.price * item.quantity).toLocaleString()}</span>
                         </div>
                       </div>
                       <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => removeItem(item.product.id)}
@@ -163,7 +163,7 @@ export function CartDrawer() {
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
                   className="px-6 py-5 border-t border-gray-100 space-y-4">
                   <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>Subtotal</span><span className="font-semibold text-gray-700">EGP {total.toFixed(2)}</span>
+                    <span>Subtotal</span><span className="font-semibold text-gray-700">EGP {total.toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm text-gray-500">
                     <span>Shipping</span><span className="font-semibold text-green-500">Free</span>
@@ -188,7 +188,7 @@ export function CartDrawer() {
                   <div className="h-px bg-gray-100" />
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-gray-900 text-lg">Total</span>
-                    <span className="font-extrabold text-gray-900 text-xl">EGP {total.toFixed(2)}</span>
+                    <span className="font-extrabold text-gray-900 text-xl">EGP {total.toLocaleString()}</span>
                   </div>
                   <motion.button
                     whileHover={{ scale: 1.02, y: -1 }}

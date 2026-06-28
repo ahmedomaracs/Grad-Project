@@ -123,7 +123,7 @@ function SignupPageContent() {
 
   const loginUser = useAuthStore((state) => state.login);
   const addToast = useToastStore((state) => state.addToast);
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [pwdStrength, setPwdStrength] = useState(0);
@@ -144,6 +144,7 @@ function SignupPageContent() {
       email: '',
       password: '',
       confirmPassword: '',
+      // role: 'Mechanic',
       agree: false,
     },
   });
@@ -169,7 +170,7 @@ function SignupPageContent() {
 
   const onSubmit = async (data: SignupFormValues) => {
     setIsLoading(true);
-    
+
     const nameParts = data.name.trim().split(/\s+/);
     const firstName = nameParts[0] || '';
     const lastName = nameParts.slice(1).join(' ') || firstName;
@@ -182,6 +183,7 @@ function SignupPageContent() {
         displayName,
         email: data.email,
         password: data.password,
+        // role: 'Mechanic',
         phoneNumber: data.phone,
       });
 
@@ -235,8 +237,8 @@ function SignupPageContent() {
       </div>
 
       <div className="w-full max-w-lg relative z-10">
-        <Link 
-          href="/" 
+        <Link
+          href="/"
           className="absolute -top-12 left-0 flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-[#E62424] transition-colors group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
@@ -272,9 +274,8 @@ function SignupPageContent() {
                           placeholder="Ahmed Al-Masri"
                           {...register('name')}
                           disabled={isLoading}
-                          className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-slate-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
-                            errors.name ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-[#E62424]/40'
-                          }`}
+                          className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-slate-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${errors.name ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-[#E62424]/40'
+                            }`}
                         />
                         <User className="absolute left-3.5 top-3 w-4.5 h-4.5 text-slate-400" />
                       </div>
@@ -289,9 +290,8 @@ function SignupPageContent() {
                           placeholder="+962 7 9876 5432"
                           {...register('phone')}
                           disabled={isLoading}
-                          className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-slate-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
-                            errors.phone ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-[#E62424]/40'
-                          }`}
+                          className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-slate-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${errors.phone ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-[#E62424]/40'
+                            }`}
                         />
                         <Phone className="absolute left-3.5 top-3 w-4.5 h-4.5 text-slate-400" />
                       </div>
@@ -307,9 +307,8 @@ function SignupPageContent() {
                         placeholder="ahmed@example.com"
                         {...register('email')}
                         disabled={isLoading}
-                        className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-slate-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
-                          errors.email ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-[#E62424]/40'
-                        }`}
+                        className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-slate-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${errors.email ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-[#E62424]/40'
+                          }`}
                       />
                       <Mail className="absolute left-3.5 top-3 w-4.5 h-4.5 text-slate-400" />
                     </div>
@@ -327,9 +326,8 @@ function SignupPageContent() {
                         disabled={isLoading}
                         onFocus={() => setPwdFocused(true)}
                         onBlur={() => setPwdFocused(false)}
-                        className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-slate-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
-                          errors.password ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-[#E62424]/40'
-                        }`}
+                        className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-slate-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${errors.password ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-[#E62424]/40'
+                          }`}
                       />
                       <Lock className="absolute left-3.5 top-3 w-4.5 h-4.5 text-slate-400" />
                     </div>
@@ -379,9 +377,8 @@ function SignupPageContent() {
                                   className="flex items-center gap-2"
                                 >
                                   <div
-                                    className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
-                                      passed ? 'bg-green-500' : 'bg-slate-200'
-                                    }`}
+                                    className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-200 ${passed ? 'bg-green-500' : 'bg-slate-200'
+                                      }`}
                                   >
                                     {passed ? (
                                       <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
@@ -390,9 +387,8 @@ function SignupPageContent() {
                                     )}
                                   </div>
                                   <span
-                                    className={`text-xs font-semibold transition-colors duration-200 ${
-                                      passed ? 'text-green-600 line-through decoration-green-400/60' : 'text-slate-500'
-                                    }`}
+                                    className={`text-xs font-semibold transition-colors duration-200 ${passed ? 'text-green-600 line-through decoration-green-400/60' : 'text-slate-500'
+                                      }`}
                                   >
                                     {rule.label}
                                   </span>
@@ -417,9 +413,8 @@ function SignupPageContent() {
                         placeholder="••••••••"
                         {...register('confirmPassword')}
                         disabled={isLoading}
-                        className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-slate-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${
-                          errors.confirmPassword ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-[#E62424]/40'
-                        }`}
+                        className={`w-full h-11 pl-10 pr-4 rounded-xl border bg-slate-50/50 text-sm font-semibold outline-none transition-colors disabled:opacity-60 ${errors.confirmPassword ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-[#E62424]/40'
+                          }`}
                       />
                       <Lock className="absolute left-3.5 top-3 w-4.5 h-4.5 text-slate-400" />
                     </div>

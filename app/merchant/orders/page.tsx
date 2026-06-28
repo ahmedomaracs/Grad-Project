@@ -1,9 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useMerchantOrderStore } from '../../../store/merchantOrderStore';
-import { ShoppingCart, Navigation2, Wrench } from 'lucide-react';
+import { ShoppingCart, Navigation2, Wrench, AlertTriangle } from 'lucide-react';
 import { MerchantOrderEntity, OrderItemEntity } from '../../../types/order';
+import { WorkspaceLayout } from '@/components/dashboard/WorkspaceLayout';
+import { useAuthStore } from '@/store/authStore';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 export function OrdersTab({ merchantId }: { merchantId: string }) {
   const { orders, updateOrderStatus } = useMerchantOrderStore();
@@ -122,11 +125,6 @@ export function OrdersTab({ merchantId }: { merchantId: string }) {
   );
 }
 
-import { WorkspaceLayout } from '@/components/dashboard/WorkspaceLayout';
-import { useAuthStore } from '@/store/authStore';
-import { useRequireAuth } from '@/hooks/useRequireAuth';
-import { AlertTriangle } from 'lucide-react';
-import { Suspense } from 'react';
 
 export default function MerchantOrdersPage() {
   const { user } = useRequireAuth();

@@ -4,8 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Car, ChevronDown, Check } from 'lucide-react';
 import { SearchBar } from './SearchBar';
-import { useShopFilterStore } from '@/store/shopFilterStore';
-import { useAuthStore, Vehicle } from '@/store/authStore';
+import { useShopFilterStore } from '../../store/shopFilterStore';
+import { useAuthStore, Vehicle } from '../../store/authStore';
 
 interface SearchControlDeckProps {
   onFilterOpen: () => void;

@@ -455,9 +455,9 @@ export const useAuthStore = create<AuthStore>()(
       login: (email: string, name?: string, isNewUser?: boolean, token?: string) => {
         let resolvedRole: UserRole = 'Client';
         const lowerEmail = email.toLowerCase();
-        if (lowerEmail.includes('ahmedmechanic@') || lowerEmail.startsWith('m3@') || lowerEmail.startsWith('m4@')) {
+        if (lowerEmail.includes('ahmedmechanic@') || lowerEmail.includes('m3@') || lowerEmail.includes('m4@')) {
           resolvedRole = 'Mechanic';
-        } else if (lowerEmail.includes('cs') || lowerEmail.includes('cs')) {
+        } else if (lowerEmail.includes('.cs') || lowerEmail.includes('cs@')) {
           resolvedRole = 'Merchant';
         } else if (lowerEmail.includes('admin')) {
           resolvedRole = 'Admin';

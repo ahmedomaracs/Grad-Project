@@ -11,7 +11,7 @@ import { CartDrawer } from '../../components/shop/CartDrawer';
 import { FilterDrawer } from '../../components/shop/FilterDrawer';
 import { CartButton } from '../../components/shop/CartButton';
 import { PRODUCTS } from '../../constants/shop';
-import { FilterState, SortOption } from '../../types/shop';
+import { FilterState, SortOption, Category } from '../../types/shop';
 import { useAuthStore } from '../../store/authStore';
 import { Vehicle } from '../../store/authStore';
 
@@ -135,8 +135,8 @@ function ShopContent() {
   const [activeFilterTab, setActiveFilterTab] = useState<'search' | 'vehicle' | 'vin'>('search');
 
   // ── Filter states — seeded from URL params ──
-  const [selectedCategory, setSelectedCategory] = useState<string>(
-    searchParams.get('category') || 'All'
+  const [selectedCategory, setSelectedCategory] = useState<Category>(
+    (searchParams.get('category') as Category) || 'All'
   );
   const [selectedBrands, setSelectedBrands] = useState<string[]>(
     searchParams.get('brand') ? [searchParams.get('brand')!] : []
@@ -435,7 +435,7 @@ function ShopContent() {
             {['All', 'Engine', 'Brakes', 'Lighting', 'Accessories', 'Tires'].map((cat) => (
               <button
                 key={cat}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => setSelectedCategory(cat as Category)}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${selectedCategory === cat
                     ? 'bg-[#E62424] text-white shadow-md shadow-red-500/10'
                     : 'bg-white text-slate-600 border border-slate-100 hover:bg-slate-50'
